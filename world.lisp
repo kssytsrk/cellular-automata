@@ -32,14 +32,14 @@
 (setf (aref (aref (world-array *world-matrix*) 1) (/ (length (aref (world-array *world-matrix*) 1)) 2)) 1)
 
 (defparameter *ruleset*
-  '(((0 0 0) -> 0)
-    ((0 0 1) -> 1)
-    ((0 1 0) -> 0)
-    ((0 1 1) -> 1)
-    ((1 0 0) -> 1)
-    ((1 0 1) -> 0)
-    ((1 1 0) -> 1)
-    ((1 1 1) -> 0)))
+  '(((0 0 0) . 0)
+    ((0 0 1) . 1)
+    ((0 1 0) . 0)
+    ((0 1 1) . 1)
+    ((1 0 0) . 1)
+    ((1 0 1) . 0)
+    ((1 1 0) . 1)
+    ((1 1 1) . 0)))
 
 (defun calculate-world ()
   (loop for i from 0 to (- (length (world-array *world-matrix*)) 2)
@@ -51,7 +51,7 @@
   (let ((next-generation (make-array (length current-generation))))
     (dotimes (i (length current-generation))
       (setf (aref next-generation i)
-            (caddr (assoc (list (handler-case
+            (rest (assoc (list (handler-case
                                       (aref current-generation (1- i))
                                     (t () 0))
                                   (aref current-generation i)
