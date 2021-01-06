@@ -6,8 +6,8 @@
   :license  "Specify license here"
   :version "0.0.1"
   :serial t
-  :depends-on (#:clim #:clim-lisp #:mcclim)
+  :depends-on (#:sdl2 #:cl-opengl)
   :components ((:file "package")
                (:file "ca")
-               (:file "ui")
-               (:file "world")))
+               (:file "world")
+               (:file "ui")))
