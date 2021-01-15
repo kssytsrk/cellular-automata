@@ -3,4 +3,4 @@
 (defpackage #:ca
   (:use #:cl
         #:cffi)
-  (:export :initialize))
+  (:export :start))

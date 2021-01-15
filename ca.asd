@@ -10,4 +10,6 @@
   :components ((:file "package")
                (:file "ca")
                (:file "world")
-               (:file "ui")))
+               (:file "variables")
+               (:file "ui")
+               (:file "start")))
