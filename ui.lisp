@@ -19,7 +19,7 @@
                  else
                    do (apply #'sdl2:set-render-draw-color renderer *bg-color*)
                  end
-                 do (sdl2::render-draw-point renderer i j))))
+                 do (sdl2::render-draw-point renderer j i))))
 
 (defun initialize ()
   "Start program."
