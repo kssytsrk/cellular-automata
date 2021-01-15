@@ -5,6 +5,9 @@
 (defparameter *screen-width* 200)
 (defparameter *screen-height* 200)
 
+(defparameter *world-matrix* nil
+  "The environment of a cellular automaton.")
+
 (defparameter *bg-color* '(0 0 0 255))
 (defparameter *fg-color* '(255 255 255 255))
 
@@ -19,7 +22,7 @@
                  do (sdl2::render-draw-point renderer i j))))
 
 (defun initialize ()
-  "Test the SDL_render.h API"
+  "Start program."
   (sdl2:with-init (:everything)
     (sdl2:with-window (win :title "SDL2 Renderer API Demo"
                            :flags '(:shown)
@@ -33,10 +36,9 @@
              (sdl2:push-event :quit)))
           (:idle
            ()
-           (defparameter *world-matrix* (make-world :rows *screen-height*
-                                                    :cols *screen-width*
-                                                    :states '(0 1))
-             "The environment of a cellular automaton.")
+           (setf *world-matrix* (make-world :rows *screen-height*
+                                            :cols *screen-width*
+                                            :states '(0 1)))
            (setf (world-aref *world-matrix* 0 (/ (world-cols *world-matrix*) 2)) 1)
            (calculate-world *world-matrix*)
            (render-all-points renderer *world-matrix*)
