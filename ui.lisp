@@ -3,6 +3,7 @@
 (require :sdl2)
 
 (defun render-all-points (renderer world)
+  "Re-draw all points according to the WORLD's matrix."
   (loop for i from 0 to (1- *screen-height*)
         do (loop for j from 0 to (1- *screen-width*)
                  when (eql (world-aref world i j) 1)
