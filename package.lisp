@@ -2,4 +2,5 @@
 
 (defpackage #:ca
   (:use #:cl
-        #:cffi))
+        #:cffi)
+  (:export :start))
