@@ -21,12 +21,10 @@
       (:key-down-event ()
                        (sdl:push-quit-event))
       (:idle ()
-             ;; Change the color of the box if the left mouse button is depressed
-             ;; (when (sdl:mouse-left-p)
-             ;;   (setf *random-color* (sdl:color :r (random 255) :g (random 255) :b (random 255))))
-             ;; Clear the display each game loop
-             ;; Draw the box having a center at the mouse x/y coordinates.
-             ;; (sdl:draw-box (sdl:rectangle-from-midpoint-* (sdl:mouse-x) (sdl:mouse-y) 20 20)
-             ;;               :color *random-color*)
+             (when (sdl:mouse-left-p)
+               (setf (world-aref *world* (sdl:mouse-y) (sdl:mouse-x)) 1)
+               (calculate-world *world* *ruleset* (sdl:mouse-y))
+               (redraw-ca))
+
              ;; Redraw the display
              (sdl:update-display)))))

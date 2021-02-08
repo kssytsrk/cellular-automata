@@ -32,10 +32,8 @@
 
 (defsetf world-aref set-world-aref)
 
-;; (setf (aref (aref (world-array *world-matrix*) 1) (/ (length (aref (world-array *world-matrix*) 1)) 2)) 1)
-
-(defun calculate-world (world ruleset)
-  (loop for i from 0 to (- (length (world-array world)) 2)
+(defun calculate-world (world ruleset &optional (start 0))
+  (loop for i from start to (- (length (world-array world)) 2)
         do (setf (aref (world-array world) (1+ i))
                  (calculate-next-generation (aref (world-array world) i) ruleset)))
   world)
