@@ -1,20 +1,21 @@
 (in-package #:ca)
 
-(defparameter *screen-width* 200)
-(defparameter *screen-height* 200)
+(defparameter *window-height* 20)
+(defparameter *window-width* 20)
 
-(defparameter *world-matrix* nil
+(defparameter *world* nil
   "The environment of a cellular automaton.")
 
-(defparameter *ruleset*
-  '(((0 0 0) . 0)
-    ((0 0 1) . 1)
-    ((0 1 0) . 0)
-    ((0 1 1) . 1)
-    ((1 0 0) . 1)
-    ((1 0 1) . 0)
-    ((1 1 0) . 1)
-    ((1 1 1) . 0)))
+(defparameter *rulesets*
+  '((1 . (((0 0 0) . 0)
+          ((0 0 1) . 1)
+          ((0 1 0) . 0)
+          ((0 1 1) . 1)
+          ((1 0 0) . 1)
+          ((1 0 1) . 0)
+          ((1 1 0) . 1)
+          ((1 1 1) . 0)))))
 
-(defparameter *bg-color* '(0 0 0 255))
-(defparameter *fg-color* '(255 255 255 255))
+(defparameter *colors*
+  (list (cons 0 (sdl:color :r 0 :g 0 :b 0 :a 255))
+        (cons 1 (sdl:color :r 255 :g 255 :b 255 :a 255))))
