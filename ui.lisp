@@ -1,11 +1,23 @@
 (in-package #:ca)
 
-(defun redraw-ca ()
-  (loop for i below *window-height*
-        do (loop for j below *window-width*
-                 do (sdl:draw-pixel (sdl:point :x j :y i)
-                                    :color (cdr (assoc (world-aref *world* i j)
-                                                       *colors*))))))
+(defun get-pixel-value (x y)
+  (car (rassoc (sdl:read-pixel (sdl:point :x x :y y)
+                               :surface sdl:*default-display*)
+               *colors*
+               :test #'sdl:color=)))
+
+(defun redraw-ca (&optional (y-start 0))
+  (loop for y from y-start below (1- *window-height*)
+        do (loop for x below *window-width*
+                 do (sdl:draw-pixel (sdl:point :x x :y (1+ y))
+                                    :color
+                                    (cdr (assoc (cdr (assoc (list (get-pixel-value (1- x) y)
+                                                                  (get-pixel-value x y)
+                                                                  (get-pixel-value (1+ x) y))
+                                                            *ruleset*
+                                                            :test #'equal))
+                                                *colors*))))
+           (sdl:update-display)))
 
 (defun initialize ()
   (sdl:with-init ()
@@ -14,6 +26,7 @@
     (setf (sdl:frame-rate) 60)
 
     (sdl:clear-display (cdr (assoc 0 *colors*)))
+    (sdl:draw-pixel (sdl:point :x (/ *window-height* 2) :y 0) :color (cdr (assoc 1 *colors*)))
     (redraw-ca)
 
     (sdl:with-events ()
@@ -22,9 +35,6 @@
                        (sdl:push-quit-event))
       (:idle ()
              (when (sdl:mouse-left-p)
-               (setf (world-aref *world* (sdl:mouse-y) (sdl:mouse-x)) 1)
-               (calculate-world *world* *ruleset* (sdl:mouse-y))
-               (redraw-ca))
-
-             ;; Redraw the display
-             (sdl:update-display)))))
+               (sdl:draw-pixel (sdl:point :x (sdl:mouse-x) :y (sdl:mouse-y))
+                               :color (cdr (assoc 1 *colors*)))
+               (redraw-ca (sdl:mouse-y)))))))
