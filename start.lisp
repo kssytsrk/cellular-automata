@@ -9,5 +9,9 @@
                             :cols w
                             :states '(0 1)))
   (setf (world-aref *world* 0 (/ (world-cols *world*) 2)) 1)
-  (calculate-world *world* (cdr (assoc ruleset *rulesets*)))
-  (initialize))
+
+  (if (not (setf *ruleset* (get-ruleset ruleset)))
+      (format t "Wrong ruleset number input.")
+      (progn
+        (calculate-world *world* *ruleset*)
+        (initialize))))
