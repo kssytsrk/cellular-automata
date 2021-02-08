@@ -8,9 +8,7 @@
   :serial t
   :depends-on (#:lispbuilder-sdl)
   :components ((:file "package")
-               (:file "ca")
                (:file "utils")
-               (:file "world")
                (:file "variables")
                (:file "ui")
                (:file "start")))

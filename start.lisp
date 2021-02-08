@@ -7,6 +7,4 @@
   (setf *window-height* h)
   (if (not (setf *ruleset* (get-ruleset ruleset)))
       (format t "Wrong ruleset number input.")
-      (progn
-        (calculate-world *world* *ruleset*)
-        (initialize))))
+      (initialize)))
