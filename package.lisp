@@ -1,6 +1,5 @@
 ;;;; package.lisp
 
 (defpackage #:ca
-  (:use #:cl
-        #:cffi)
+  (:use #:cl)
   (:export :start))

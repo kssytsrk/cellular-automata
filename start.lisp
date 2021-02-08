@@ -1,10 +1,10 @@
 (in-package #:ca)
 
-(defun start ()
+(defun start (&key (h 500) (w 500)
+                (ruleset 1))
   "Start the program."
-  (let ((world (make-world :rows *screen-height*
-                           :cols *screen-width*
-                           :states '(0 1))))
-    (setf (world-aref world 0 (/ (world-cols world) 2)) 1)
-    (calculate-world world *ruleset*)
-    (initialize *screen-height* *screen-width* world)))
+  (setf *window-width* w)
+  (setf *window-height* h)
+  (if (not (setf *ruleset* (get-ruleset ruleset)))
+      (format t "Wrong ruleset number input.")
+      (initialize)))

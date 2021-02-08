@@ -6,10 +6,9 @@
   :license  "GNU GPLv3"
   :version "0.0.1"
   :serial t
-  :depends-on (#:sdl2 #:cl-opengl)
+  :depends-on (#:lispbuilder-sdl)
   :components ((:file "package")
-               (:file "ca")
-               (:file "world")
+               (:file "utils")
                (:file "variables")
                (:file "ui")
                (:file "start")))

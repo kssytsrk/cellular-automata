@@ -1,34 +1,40 @@
 (in-package #:ca)
 
-(require :sdl2)
+(defun get-pixel-value (x y)
+  (car (rassoc (sdl:read-pixel (sdl:point :x x :y y)
+                               :surface sdl:*default-display*)
+               *colors*
+               :test #'sdl:color=)))
 
-(defun render-all-points (renderer world)
-  "Re-draw all points according to the WORLD's matrix."
-  (loop for i from 0 to (1- *screen-height*)
-        do (loop for j from 0 to (1- *screen-width*)
-                 when (eql (world-aref world i j) 1)
-                   do (apply #'sdl2:set-render-draw-color renderer *fg-color*)
-                 else
-                   do (apply #'sdl2:set-render-draw-color renderer *bg-color*)
-                 end
-                 do (sdl2::render-draw-point renderer j i))))
+(defun redraw-ca (&optional (y-start 0))
+  (loop for y from y-start below (1- *window-height*)
+        do (loop for x below *window-width*
+                 do (sdl:draw-pixel (sdl:point :x x :y (1+ y))
+                                    :color
+                                    (assoc-rh
+                                     (assoc-rh (list (get-pixel-value (1- x) y)
+                                                     (get-pixel-value x y)
+                                                     (get-pixel-value (1+ x) y))
+                                               *ruleset*
+                                               :test #'equal)
+                                     *colors*)))
+           (sdl:update-display)))
 
-(defun initialize (screen-height screen-width world)
-  "Start GUI."
-  (sdl2:with-init (:everything)
-    (sdl2:with-window (win :title "SDL2 Renderer API Demo"
-                           :flags '(:shown)
-                           :w screen-width
-                           :h screen-height)
-      (sdl2:with-renderer (renderer win :flags '(:accelerated))
-        (sdl2:with-event-loop (:method :poll)
-          (:keyup
-           (:keysym keysym)
-           (when (sdl2:scancode= (sdl2:scancode-value keysym) :scancode-escape)
-             (sdl2:push-event :quit)))
-          (:idle
-           ()
-           (render-all-points renderer world)
-           (sdl2:render-present renderer)
-           (sdl2:delay 33))
-          (:quit () t))))))
+(defun initialize ()
+  (sdl:with-init ()
+    (sdl:window *window-width* *window-height*
+                :title-caption "Cellular automata generation")
+    (setf (sdl:frame-rate) 60)
+
+    (sdl:clear-display (cdr (assoc 0 *colors*)))
+    (sdl:draw-pixel (sdl:point :x (/ *window-height* 2) :y 0)
+                    :color (cdr (assoc 1 *colors*)))
+    (redraw-ca)
+
+    (sdl:with-events ()
+      (:quit-event () t)
+      (:idle ()
+             (when (sdl:mouse-left-p)
+               (sdl:draw-pixel (sdl:point :x (sdl:mouse-x) :y (sdl:mouse-y))
+                               :color (cdr (assoc 1 *colors*)))
+               (redraw-ca (sdl:mouse-y)))))))
