@@ -33,8 +33,6 @@
 
     (sdl:with-events ()
       (:quit-event () t)
-      (:key-down-event ()
-                       (sdl:push-quit-event))
       (:idle ()
              (when (sdl:mouse-left-p)
                (sdl:draw-pixel (sdl:point :x (sdl:mouse-x) :y (sdl:mouse-y))
