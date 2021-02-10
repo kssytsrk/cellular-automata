@@ -1,11 +1,6 @@
 (in-package #:ca)
 
 (defun get-pixel-value (x y)
-  (car (rassoc (sdl:read-pixel (sdl:point :x x :y y)
-                               :surface sdl:*default-display*)
-               *colors*
-               :test #'sdl:color=)))
-
 (defun redraw-ca (&optional (y-start 0))
   (loop for y from y-start below (1- *window-height*)
         do (loop for x below *window-width*
