@@ -71,6 +71,10 @@
     (sdl:with-events ()
       (:quit-event () t)
       (:idle ()
-             (when (sdl:mouse-left-p)
-               (sdl:draw-pixel (sdl:point :x (sdl:mouse-x) :y (sdl:mouse-y)) :color (cdr (assoc 1 *colors*)))
-               (redraw-ca d))))))
+             (if (sdl:mouse-left-p)
+                 (progn (sdl:draw-pixel
+                         (sdl:point :x (sdl:mouse-x)
+                                    :y (sdl:mouse-y))
+                         :color (cdr (assoc 1 *colors*)))
+                        (redraw-ca d))
+                 (redraw-ca d))))))
