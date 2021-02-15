@@ -7,8 +7,7 @@
       (setf y 0))
   (if (< x 0)
       ;(return-from get-pixel-value 0)
-      (setf x (1- *window-width*))
-      )
+      (setf x (1- *window-width*)))
   (if (< y 0)
       (setf y (1- *window-height*)))
   (car (rassoc (sdl:read-pixel (sdl:point :x x :y y)
@@ -60,6 +59,7 @@
     (setf (sdl:frame-rate) 60)
 
     (sdl:clear-display (cdr (assoc 0 *colors*)))
+
     (if (eql d 1)
         (sdl:draw-pixel (sdl:point :x (/ *window-width* 2) :y 0)
                         :color (cdr (assoc 1 *colors*)))
