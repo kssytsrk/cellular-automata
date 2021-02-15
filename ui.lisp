@@ -22,11 +22,12 @@
         (get-pixel-value (1+ x) (1- y))))
 
 (defun get-2d-adj-pixel-values (x y)
-  (list (get-pixel-value (1- x) (1- y))
-        (get-pixel-value (1- x) y)
-        (get-pixel-value     x  y)
-        (get-pixel-value (1+ x) y)
-        (get-pixel-value     x  y)))
+  (list (get-pixel-value     x     y)  ; v
+        (get-pixel-value (1+ x)    y)  ; v0
+        (get-pixel-value     x (1+ y)) ; v1
+        (get-pixel-value (1- x) y)     ; v2
+        (get-pixel-value     x (1- y)) ; v3
+))
 
 (defun get-color-for-pixel (x y d)
   (assoc-rh
