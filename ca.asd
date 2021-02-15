@@ -9,6 +9,7 @@
   :depends-on (#:lispbuilder-sdl)
   :components ((:file "package")
                (:file "utils")
+               (:file "rules")
                (:file "variables")
                (:file "ui")
                (:file "start")))
