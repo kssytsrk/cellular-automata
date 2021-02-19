@@ -6,7 +6,6 @@
   (if (= y *window-height*)
       (setf y 0))
   (if (< x 0)
-      ;(return-from get-pixel-value 0)
       (setf x (1- *window-width*)))
   (if (< y 0)
       (setf y (1- *window-height*)))

@@ -19,10 +19,7 @@
        (lambda (char)
          (parse-integer (string char)))
        (format nil
-               (concatenate 'string
-                            "~"
-                            (format nil "~a" padding)
-                            ",'0b")
+               (concatenate 'string "~" (format nil "~a" padding) ",'0b")
                number)))
 
 (defun get-ruleset (n)
@@ -31,14 +28,13 @@
                    (:neumann 32)
                    (:moore 512)
                    (t 0))))
-    (when (and (>= n 0)
-                     (< n (expt 2 max-pwr)))
-            (let ((states (decimal-to-binary-list n max-pwr))
-                  (patterns (reverse
-                             (loop for i from 0 below max-pwr
-                                   collect (decimal-to-binary-list i
-                                                                   (case *neighbourhood*
-                                                                     (:1d 3)
-                                                                     (:neumann 5)
-                                                                     (:moore 9)))))))
-              (reverse (mapcar #'cons patterns states))))))
+    (when (and (>= n 0) (< n (expt 2 max-pwr)))
+      (let ((states (decimal-to-binary-list n max-pwr))
+            (patterns (reverse
+                       (loop for i from 0 below max-pwr
+                             collect (decimal-to-binary-list i
+                                                             (case *neighbourhood*
+                                                               (:1d 3)
+                                                               (:neumann 5)
+                                                               (:moore 9)))))))
+        (reverse (mapcar #'cons patterns states))))))
