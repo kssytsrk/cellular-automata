@@ -57,12 +57,9 @@
 
 (defun initialize (&optional p1 p2)
   (sdl:with-init ()
-    (sdl:init-video)
     (sdl:window *window-width* *window-height*
-                :title-caption "Cellular automata generation"
-                :video-driver (sdl:video-driver-name))
+                :title-caption "Cellular automata generation")
     (setf (sdl:frame-rate) 60)
-
     (sdl:clear-display (get-color 0))
 
     (if (eql *neighbourhood* :1d)
@@ -71,12 +68,9 @@
         (sdl:draw-pixel (sdl:point :x (/ *window-width* 2)
                                    :y (/ *window-height* 2))
                         :color (get-color 1)))
-
     (if (and p1 p2)
         (sdl:draw-line p1 p2
                        :color (get-color 1)))
-    (redraw-ca)
-
     (sdl:with-events ()
       (:quit-event () t)
       (:idle ()
