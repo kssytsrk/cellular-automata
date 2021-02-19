@@ -40,57 +40,51 @@
         (get-pixel-value (1+ x) (1- y)) ; v7
         ))
 
-(defun get-color-for-pixel (x y d)
-  (assoc-rh
-   (if (eql *ruleset* :game-of-life)
-       (get-game-of-life-transition-rule
-        (get-moore-adj-pixel-values x y))
-       (get-transition-rule
-        (case d
-          (1        (get-1d-adj-pixel-values x y))
-          (:neumann (get-neumann-adj-pixel-values x y))
-          (:moore   (get-moore-adj-pixel-values x y)))))
-   *colors*))
+(defun get-color-for-pixel (x y)
+  (get-color
+   (get-transition-rule
+    (case *neighbourhood*
+      (:1d      (get-1d-adj-pixel-values x y))
+      (:neumann (get-neumann-adj-pixel-values x y))
+      (:moore   (get-moore-adj-pixel-values x y))))))
 
-(defun redraw-ca (d &optional start)
-  (unless start
-    (if (eql d 1)
-        (setf start (sdl:point :x 0 :y 1))
-        (setf start (sdl:point))))
-  (loop for y from (sdl:y start) below *window-height*
-        do (loop for x from (sdl:x start) below *window-width*
+(defun redraw-ca ()
+  (declare (optimize (safety 0) (speed 3) (space 1)))
+  (declare (type fixnum *window-height* *window-width*))
+  (loop for y from (if (eql *neighbourhood* :1d) 1 0) below *window-height*
+        do (loop for x from 0 below *window-width*
                  do (sdl:draw-pixel (sdl:point :x x :y y)
-                                    :color (get-color-for-pixel x y d)))
-             (sdl:update-display)))
+                                    :color (get-color-for-pixel x y)))))
 
-(defun initialize (d &optional p1 p2)
+(defun initialize (&optional p1 p2)
   (sdl:with-init ()
+    (sdl:init-video)
     (sdl:window *window-width* *window-height*
-                :title-caption "Cellular automata generation")
+                :title-caption "Cellular automata generation"
+                :video-driver (sdl:video-driver-name))
     (setf (sdl:frame-rate) 60)
 
-    (sdl:clear-display (cdr (assoc 0 *colors*)))
+    (sdl:clear-display (get-color 0))
 
-    (if (eql d 1)
+    (if (eql *neighbourhood* :1d)
         (sdl:draw-pixel (sdl:point :x (/ *window-width* 2) :y 0)
                         :color (cdr (assoc 1 *colors*)))
         (sdl:draw-pixel (sdl:point :x (/ *window-width* 2)
                                    :y (/ *window-height* 2))
-                        :color (cdr (assoc 1 *colors*))))
+                        :color (get-color 1)))
 
-    (if (and (eql *ruleset* :game-of-life)
-             p1 p2)
+    (if (and p1 p2)
         (sdl:draw-line p1 p2
-                       :color (cdr (assoc 1 *colors*))))
-    (redraw-ca d)
+                       :color (get-color 1)))
+    (redraw-ca)
 
     (sdl:with-events ()
       (:quit-event () t)
       (:idle ()
-             (if (sdl:mouse-left-p)
-                 (progn (sdl:draw-pixel
-                         (sdl:point :x (sdl:mouse-x)
-                                    :y (sdl:mouse-y))
-                         :color (cdr (assoc 1 *colors*)))
-                        (redraw-ca d))
-                 (redraw-ca d))))))
+             (when (sdl:mouse-left-p)
+               (sdl:draw-pixel
+                (sdl:point :x (sdl:mouse-x)
+                           :y (sdl:mouse-y))
+                :color (get-color 1)))
+             (redraw-ca)
+             (sdl:update-display)))))

@@ -1,7 +1,9 @@
 (in-package #:ca)
 
 (defun get-transition-rule (cells)
-  (assoc-rh cells *ruleset* :test #'equal))
+  (case *ruleset*
+    (:game-of-life (get-game-of-life-transition-rule cells))
+    (t (assoc-rh cells *ruleset* :test #'equal))))
 
 (defun get-game-of-life-transition-rule (cells)
   (let ((cell (first cells))
@@ -12,35 +14,31 @@
         1
         0)))
 
-(defun get-ruleset (n &optional (d 1))
-  (when (and (>= n 0)
-             (< n (expt 2 (case d
-                            (1 8)
-                            (:neumann 32)
-                            (:moore 512)
-                            (t 0)))))
-    (let ((states (map 'list
-                       (lambda (char)
-                         (parse-integer (string char)))
-                       (case d
-                         (1 (format nil "~8,'0b" n))
-                         (:neumann (format nil "~32,'0b" n))
-                         (:moore (format nil "~512,'0b" n)))))
-          (patterns (reverse
-                     (loop for i from 0 below (case d
-                                                (1 8)
-                                                (:neumann 32)
-                                                (:moore 512)
-                                                (t 0))
-                           collect (map 'list
-                                        (lambda (char)
-                                          (parse-integer (string char)))
-                                        (case d
-                                          (1 (format nil "~3,'0b" i))
-                                          (:neumann (format nil "~5,'0b" i))
-                                          (:moore (format nil "~9,'0b" i))))))))
-      (reverse (mapcar #'cons patterns states)))))
+(defun decimal-to-binary-list (number padding)
+  (map 'list
+       (lambda (char)
+         (parse-integer (string char)))
+       (format nil
+               (concatenate 'string
+                            "~"
+                            (format nil "~a" padding)
+                            ",'0b")
+               number)))
 
-(defparameter *ruleset* nil)
-
-(defparameter *n-states* 0)
+(defun get-ruleset (n)
+  (let ((max-pwr (case *neighbourhood*
+                   (:1d 8)
+                   (:neumann 32)
+                   (:moore 512)
+                   (t 0))))
+    (when (and (>= n 0)
+                     (< n (expt 2 max-pwr)))
+            (let ((states (decimal-to-binary-list n max-pwr))
+                  (patterns (reverse
+                             (loop for i from 0 below max-pwr
+                                   collect (decimal-to-binary-list i
+                                                                   (case *neighbourhood*
+                                                                     (:1d 3)
+                                                                     (:neumann 5)
+                                                                     (:moore 9)))))))
+              (reverse (mapcar #'cons patterns states))))))
