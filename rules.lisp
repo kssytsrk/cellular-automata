@@ -3,7 +3,7 @@
 (defun get-transition-rule (cells)
   (case *ruleset*
     (:game-of-life (get-game-of-life-transition-rule cells))
-    (t (assoc-rh cells *ruleset* :test #'equal))))
+    (t (gethash cells *ruleset*))))
 
 (defun get-game-of-life-transition-rule (cells)
   (let ((cell (first cells))
@@ -27,7 +27,8 @@
                    (:1d 8)
                    (:neumann 32)
                    (:moore 512)
-                   (t 0))))
+                   (t 0)))
+        (ruleset (make-hash-table :test #'equal)))
     (when (and (>= n 0) (< n (expt 2 max-pwr)))
       (let ((states (decimal-to-binary-list n max-pwr))
             (patterns (reverse
@@ -37,4 +38,8 @@
                                                                (:1d 3)
                                                                (:neumann 5)
                                                                (:moore 9)))))))
-        (reverse (mapcar #'cons patterns states))))))
+        (mapcar (lambda (pattern state)
+                    (setf (gethash pattern ruleset)
+                          state))
+                patterns states)
+        ruleset))))
