@@ -5,21 +5,23 @@
              :g (logand (ash uint-color -8) 255)
              :b (logand uint-color 255)))
 
-(defun *cached-values* nil)
+(defvar *cached-values* (make-hash-table :test #'equal))
 
 (defun get-pixel-value (x y)
   (if (= x *window-width*)
-        (setf x 0))
+      (setf x 0))
   (if (= y *window-height*)
       (setf y 0))
   (if (< x 0)
       (setf x (1- *window-width*)))
   (if (< y 0)
       (setf y (1- *window-height*)))
-  (let ((surface-fp (sdl:fp sdl:*default-display*)))
-    (sdl:with-pixel (pix surface-fp)
-      (car (rassoc (unpack-color (sdl:read-pixel pix x y))
-                   *colors* :test #'sdl:color=)))))
+  (or (gethash (list x y) *cached-values*)
+      (setf (gethash (list x y) *cached-values*)
+            (let ((surface-fp (sdl:fp sdl:*default-display*)))
+              (sdl:with-pixel (pix surface-fp)
+                (car (rassoc (unpack-color (sdl:read-pixel pix x y))
+                             *colors* :test #'sdl:color=)))))))
 
 (defun get-1d-adj-pixel-values (x y)
   (list (get-pixel-value (1- x) (1- y))
@@ -47,19 +49,18 @@
         ))
 
 (defun get-color-for-pixel (x y)
-  (get-color
-   (get-transition-rule
-    (case *neighbourhood*
-      (:1d      (get-1d-adj-pixel-values x y))
-      (:neumann (get-neumann-adj-pixel-values x y))
-      (:moore   (get-moore-adj-pixel-values x y))))))
+  (let ((new-value (get-transition-rule
+                    (case *neighbourhood*
+                      (:1d      (get-1d-adj-pixel-values x y))
+                      (:neumann (get-neumann-adj-pixel-values x y))
+                      (:moore   (get-moore-adj-pixel-values x y))))))
+    (setf (gethash (list x y) *cached-values*) new-value)
+    (get-color new-value)))
 
 (defun redraw-ca ()
   (let ((surface-fp (sdl:fp sdl:*default-display*))
         (sx 0)
         (sy (if (eql *neighbourhood* :1d) 1 0)))
-    (declare (type fixnum *window-height* *window-width* sx sy)
-             (optimize (safety 3) (speed 3)))
     (sdl:with-pixel (pix surface-fp)
       (sdl:with-color (col (sdl:color))
         (loop for y from sy below *window-height*
@@ -69,7 +70,8 @@
                            (apply #'sdl-cffi::sdl-map-rgba
                                   (concatenate 'list
                                                (list (sdl-base:pixel-format surface-fp))
-                                               (sdl:fp (get-color-for-pixel x y)))))))))))
+                                               (sdl:fp (get-color-for-pixel x y)))))))))
+    (setf *cached-values* (clrhash *cached-values*))))
 
 (defun initialize (&optional p1 p2)
   (sdl:with-init (sdl:sdl-init-video)
