@@ -1,3 +1,7 @@
+;;;; -*-lisp-*-
+;;;;
+;;;; rules.lisp
+
 (in-package #:ca)
 
 (defun transition-rule (cells)

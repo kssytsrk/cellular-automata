@@ -1,3 +1,7 @@
+;;;; -*-lisp-*-
+;;;;
+;;;; start.lisp
+
 (in-package #:ca)
 
 (defvar *window-width* 50)

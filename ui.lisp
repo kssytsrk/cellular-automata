@@ -1,3 +1,7 @@
+;;;; -*-lisp-*-
+;;;;
+;;;; ui.lisp
+
 (in-package #:ca)
 
 (defparameter *cached-values* (make-hash-table :test #'equal))
@@ -6,19 +10,13 @@
 (defparameter *ey* nil)
 
 (defun check-and-fix-bounds (&key x y)
-  (when x
-    (if (= x *window-width*)
-        (setf x 0))
-    (if (< x 0)
-        (setf x (1- *window-width*))))
-  (when y
-    (if (= y *window-height*)
-        (setf y 0))
-    (if (< y 0)
-        (setf y (1- *window-height*))))
-  (if (and x y)
-      (values x y)
-      (or x y)))
+  (and x
+       (cond ((= x *window-width*) (setf x 0))
+             ((< x 0) (setf x (1- *window-width*)))))
+  (and y
+       (cond ((= y *window-height*) (setf y 0))
+             ((< y 0) (setf y (1- *window-height*)))))
+  (if (and x y) (values x y) (or x y)))
 
 (defun pixel-value (x y)
   (multiple-value-bind (x y) (check-and-fix-bounds :x x :y y)
@@ -61,7 +59,7 @@
                       (:neumann (neumann-adj-pixel-values x y))
                       (:moore   (moore-adj-pixel-values x y))))))
     (setf (gethash (list x y) *cached-values*) new-value)
-    (when (eql new-value 1)
+    (when (not (eql new-value 0))
       (let ((1-y (check-and-fix-bounds :y (1- y)))
             (1+y (check-and-fix-bounds :y (1+ y))))
         (if *sy*
@@ -72,7 +70,7 @@
             (setf *ey* (max 1-y 1+y)))))
     (color new-value)))
 
-(defun redraw-ca ()
+(defun evolve ()
   (let ((surface-fp (sdl:fp sdl:*default-display*))
         (sy (or *sy* (if (eql *neighbourhood* :1d) 1 0)))
         (ey (or *ey* (1- *window-height*))))
@@ -117,5 +115,5 @@
                 :color (color 1))
                (setf *sy* (min *sy* (sdl:mouse-y)))
                (setf *ey* (max *ey* (sdl:mouse-y))))
-             (redraw-ca)
+             (evolve)
              (sdl:update-display)))))
