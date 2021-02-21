@@ -20,6 +20,6 @@
 
   (if (or (and (not (realp ruleset))
                (setf *ruleset* ruleset))
-          (setf *ruleset* (get-ruleset ruleset)))
+          (setf *ruleset* (ruleset ruleset)))
       (initialize p1 p2)
       (format t "Wrong ruleset number input.")))

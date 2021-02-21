@@ -1,11 +1,11 @@
 (in-package #:ca)
 
-(defun get-transition-rule (cells)
+(defun transition-rule (cells)
   (case *ruleset*
-    (:game-of-life (get-game-of-life-transition-rule cells))
+    (:game-of-life (game-of-life-transition-rule cells))
     (t (gethash cells *ruleset*))))
 
-(defun get-game-of-life-transition-rule (cells)
+(defun game-of-life-transition-rule (cells)
   (let ((cell (first cells))
         (other-cells (reduce #'+ cells)))
     (if (or (and (eql cell 1)
@@ -22,7 +22,7 @@
                (concatenate 'string "~" (format nil "~a" padding) ",'0b")
                number)))
 
-(defun get-ruleset (n)
+(defun ruleset (n)
   (let ((max-pwr (case *neighbourhood*
                    (:1d 8)
                    (:neumann 32)
