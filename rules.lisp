@@ -7,7 +7,10 @@
 (defun transition-rule (cells)
   (case *ruleset*
     (:game-of-life (game-of-life-transition-rule cells))
-    (t (gethash cells *ruleset*))))
+    (:wireworld    (wireworld-transition-rule cells))
+    (t             (if (numberp *ruleset*)
+                       (gethash cells *ruleset*)
+                       :wrong-ruleset-name))))
 
 (defun game-of-life-transition-rule (cells)
   (let ((cell (first cells))
@@ -17,6 +20,21 @@
             (= other-cells 3))
         1
         0)))
+
+(defun wireworld-transition-rule (cells)
+  (let ((cell (first cells))
+        (other-cells (rest cells)))
+    (case cell
+      (0 0)
+      ((1 2) (1+ cell))
+      (3 (loop for i in other-cells
+               with electron-heads = 0
+               do (if (eql i 1)
+                      (incf electron-heads))
+               finally
+                  (return (case electron-heads
+                            ((1 2) 1)
+                            (t 3))))))))
 
 (defun decimal-to-binary-list (number padding)
   (map 'list
