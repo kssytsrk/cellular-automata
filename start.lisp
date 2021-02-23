@@ -43,7 +43,7 @@
         (cons 28 (sdl:color :r 235 :g 36  :b 36  :a 255))))
 
 (defun start (&key (h 500) (w 500)
-                (ruleset 1) (neighbourhood :1d) p1 p2)
+                (ruleset 1) (neighbourhood :1d) shapes)
   "Start the program."
   (setf *window-width* w)
   (setf *window-height* h)
@@ -52,5 +52,5 @@
   (if (or (and (not (realp ruleset))
                (setf *ruleset* ruleset))
           (setf *ruleset* (ruleset ruleset)))
-      (initialize p1 p2)
+      (initialize shapes)
       (format t "Wrong ruleset number input.")))
