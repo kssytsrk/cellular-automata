@@ -27,12 +27,12 @@
                   (car (rassoc (unpack-color (sdl:read-pixel pix x y))
                                *colors* :test #'sdl:color=))))))))
 
-(defun 1d-adj-pixel-values (x y)
+(defun 1d-neighbours-values (x y)
   (list (pixel-value (1- x) (1- y))
         (pixel-value x (1- y))
         (pixel-value (1+ x) (1- y))))
 
-(defun neumann-adj-pixel-values (x y)
+(defun neumann-neighbours-values (x y)
   (list (pixel-value     x     y)  ; v
         (pixel-value (1+ x)    y)  ; v0
         (pixel-value     x (1+ y)) ; v1
@@ -40,7 +40,7 @@
         (pixel-value     x (1- y)) ; v3
         ))
 
-(defun moore-adj-pixel-values (x y)
+(defun moore-neighbours-values (x y)
   (list (pixel-value     x       y) ; v
         (pixel-value (1+ x)      y) ; v0
         (pixel-value     x  (1+ y)) ; v1
@@ -54,9 +54,9 @@
 
 (defun color-for-pixel (x y)
   (let* ((neighbours (case *neighbourhood*
-                      (:1d      (1d-adj-pixel-values x y))
-                      (:neumann (neumann-adj-pixel-values x y))
-                      (:moore   (moore-adj-pixel-values x y))))
+                      (:1d      (1d-neighbours-values x y))
+                      (:neumann (neumann-neighbours-values x y))
+                      (:moore   (moore-neighbours-values x y))))
          (new-value (transition-rule neighbours)))
     (setf (gethash (list x y) *cached-values*) new-value)
     (when (not (eql new-value 0))
