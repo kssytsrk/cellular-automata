@@ -106,16 +106,9 @@
     (setf *sy* nil
           *ey* nil)
 
-    (cond (shapes
-           (eval shapes))
-          ((eql *neighbourhood* :1d)
-           (sdl:draw-pixel (sdl:point :x (/ *window-width* 2) :y 0)
-                           :color (cdr (assoc 1 *colors*))))
-          (t (sdl:draw-pixel (sdl:point :x (/ *window-width* 2)
-                                        :y (if (eql *neighbourhood* :1d)
-					       0
-					       (/ *window-height* 2)))
-                             :color (color 1))))
+    (if shapes
+	(eval shapes)
+        (draw-starting-points))
     (sdl:with-events ()
       (:quit-event () t)
       (:idle ()
