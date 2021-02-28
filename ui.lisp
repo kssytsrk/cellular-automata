@@ -65,6 +65,9 @@
         (if *sy*
             (setf *sy* (min *sy* 1-y 1+y))
             (setf *sy* (min 1-y 1+y)))
+	(if (and (eql *neighbourhood* :1d)
+		 (< *sy* 1))
+	    (setf *sy* 1))
         (if *ey*
             (setf *ey* (max *ey* 1-y 1+y))
             (setf *ey* (max 1-y 1+y)))))
@@ -109,7 +112,9 @@
            (sdl:draw-pixel (sdl:point :x (/ *window-width* 2) :y 0)
                            :color (cdr (assoc 1 *colors*))))
           (t (sdl:draw-pixel (sdl:point :x (/ *window-width* 2)
-                                        :y (/ *window-height* 2))
+                                        :y (if (eql *neighbourhood* :1d)
+					       0
+					       (/ *window-height* 2)))
                              :color (color 1))))
     (sdl:with-events ()
       (:quit-event () t)

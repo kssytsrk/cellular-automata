@@ -8,7 +8,7 @@
   (case *ruleset*
     (:game-of-life (game-of-life-transition-rule cells))
     (:wireworld    (wireworld-transition-rule cells))
-    (t             (if (numberp *ruleset*)
+    (t             (if (hash-table-p *ruleset*)
                        (gethash cells *ruleset*)
                        :wrong-ruleset-name))))
 
