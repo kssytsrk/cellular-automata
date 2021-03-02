@@ -12,7 +12,16 @@
 (defparameter *neighbourhood* nil)
 (defparameter *totalistic* nil)
 
-(defparameter *colors*
+(defparameter *colors* nil)
+
+(defparameter *colors-grayscale*
+  (list (cons 0  (sdl:color :r 255 :g 255 :b 255 :a 255))
+        (cons 1  (sdl:color :r 100 :g 100 :b 100 :a 255))
+        (cons 2  (sdl:color :r 0   :g 0   :b 0   :a 255))
+	(cons 3  (sdl:color :r 50  :g 50  :b 50  :a 255))
+	(cons 4  (sdl:color :r 70  :g 70  :b 70  :a 255))))
+
+(defparameter *colors-golly*
   (list (cons 0  (sdl:color :r 48  :g 48  :b 48  :a 255))
         (cons 1  (sdl:color :r 255 :g 0   :b 0   :a 255))
         (cons 2  (sdl:color :r 255 :g 125 :b 0   :a 255))
@@ -44,12 +53,16 @@
         (cons 28 (sdl:color :r 235 :g 36  :b 36  :a 255))))
 
 (defun start (&key (h 500) (w 500)
-                (ruleset 1) (neighbourhood :elementary) (totalistic nil) shapes)
+                (ruleset 1) (neighbourhood :elementary) (totalistic nil)
+		(colors :golly)	shapes)
   "Start the program."
   (setf *window-width* w)
   (setf *window-height* h)
   (setf *neighbourhood* neighbourhood)
   (setf *totalistic* totalistic)
+  (case colors
+    (:golly     (setf *colors* *colors-golly*))
+    (:grayscale (setf *colors* *colors-grayscale*)))
 
   (if (or (and (not (realp ruleset))
                (setf *ruleset* ruleset))
