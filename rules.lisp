@@ -9,7 +9,10 @@
     (:game-of-life (game-of-life-transition-rule cells))
     (:wireworld    (wireworld-transition-rule cells))
     (t             (if (hash-table-p *ruleset*)
-                       (gethash cells *ruleset*)
+		       (gethash (if *totalistic*
+				    (/ (reduce #'+ cells) 3)
+				    cells)
+				*ruleset*)
                        :wrong-ruleset-name))))
 
 (defun game-of-life-transition-rule (cells)
@@ -65,6 +68,30 @@
                           state))
                 patterns states)
         ruleset))))
+
+(defun decimal-to-base-3-list (number padding)
+  (map 'list
+       (lambda (char)
+         (parse-integer (string char)))
+       (format nil
+               (concatenate 'string "~3," (format nil "~a" padding) ",'0R")
+               number)))
+
+(defun totalistic-ruleset (n)
+  (let ((max-pwr (case *neighbourhood*
+                   (:elementary 7)
+                   (t 0)))
+        (ruleset (make-hash-table :test #'equal)))
+    (when (and (>= n 0) (< n (expt 3 max-pwr)))
+      (let ((states (decimal-to-base-3-list n max-pwr))
+            (patterns (reverse
+                       (loop for i from 0 to 2 by 1/3
+                             collect i))))
+        (mapcar (lambda (pattern state)
+                    (setf (gethash pattern ruleset)
+                          state))
+                patterns states)
+	ruleset))))
 
 (defun draw-starting-pixels ()
   (cond ((eql *neighbourhood* :elementary)
