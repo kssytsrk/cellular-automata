@@ -80,6 +80,14 @@
       (format t "~&Ruleset: ~a" *ruleset*))
     (color new-value)))
 
+(defmacro write-pixel (x y color)
+  `(sdl:write-pixel
+    pix ,x ,y
+    (apply #'sdl-cffi::sdl-map-rgba
+	   (concatenate 'list
+			(list (sdl-base:pixel-format surface-fp))
+			(sdl:fp ,color)))))
+
 (defun evolve ()
   (let ((surface-fp (sdl:fp sdl:*default-display*))
         (sy (or *sy* (if (eql *neighbourhood* :elementary) 1 0)))
@@ -89,12 +97,7 @@
       (sdl:with-color (col (sdl:color))
         (loop for y from sy to ey
               do (loop for x from 0 below *window-width*
-                       do (sdl:write-pixel
-                           pix x y
-                           (apply #'sdl-cffi::sdl-map-rgba
-                                  (concatenate 'list
-                                               (list (sdl-base:pixel-format surface-fp))
-                                               (sdl:fp (color-for-pixel x y)))))))))))
+                       do (write-pixel x y (color-for-pixel x y))))))))
 
 (defun initialize (&optional shapes)
   (sdl:with-init (sdl:sdl-init-video)
