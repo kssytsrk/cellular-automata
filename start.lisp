@@ -10,6 +10,7 @@
 (defparameter *ruleset* nil)
 
 (defparameter *neighbourhood* nil)
+(defparameter *totalistic* nil)
 
 (defparameter *colors*
   (list (cons 0  (sdl:color :r 48  :g 48  :b 48  :a 255))
@@ -43,14 +44,17 @@
         (cons 28 (sdl:color :r 235 :g 36  :b 36  :a 255))))
 
 (defun start (&key (h 500) (w 500)
-                (ruleset 1) (neighbourhood :1d) shapes)
+                (ruleset 1) (neighbourhood :elementary) (totalistic nil) shapes)
   "Start the program."
   (setf *window-width* w)
   (setf *window-height* h)
   (setf *neighbourhood* neighbourhood)
+  (setf *totalistic* totalistic)
 
   (if (or (and (not (realp ruleset))
                (setf *ruleset* ruleset))
-          (setf *ruleset* (ruleset ruleset)))
+          (setf *ruleset* (if *totalistic*
+			      (totalistic-ruleset ruleset)
+			      (ruleset ruleset))))
       (initialize shapes)
       (format t "Wrong ruleset number input.")))

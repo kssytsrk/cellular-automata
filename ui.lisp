@@ -27,7 +27,7 @@
                   (car (rassoc (unpack-color (sdl:read-pixel pix x y))
                                *colors* :test #'sdl:color=))))))))
 
-(defun 1d-neighbours-values (x y)
+(defun elementary-neighbours-values (x y)
   (list (pixel-value (1- x) (1- y))
         (pixel-value x (1- y))
         (pixel-value (1+ x) (1- y))))
@@ -54,9 +54,9 @@
 
 (defun color-for-pixel (x y)
   (let* ((neighbours (case *neighbourhood*
-                      (:1d      (1d-neighbours-values x y))
-                      (:neumann (neumann-neighbours-values x y))
-                      (:moore   (moore-neighbours-values x y))))
+                      (:elementary (elementary-neighbours-values x y))
+                      (:neumann    (neumann-neighbours-values x y))
+                      (:moore      (moore-neighbours-values x y))))
          (new-value (transition-rule neighbours)))
     (setf (gethash (list x y) *cached-values*) new-value)
     (when (not (eql new-value 0))
@@ -65,7 +65,7 @@
         (if *sy*
             (setf *sy* (min *sy* 1-y 1+y))
             (setf *sy* (min 1-y 1+y)))
-	(if (and (eql *neighbourhood* :1d)
+	(if (and (eql *neighbourhood* :elementary)
 		 (< *sy* 1))
 	    (setf *sy* 1))
         (if *ey*
@@ -80,26 +80,30 @@
       (format t "~&Ruleset: ~a" *ruleset*))
     (color new-value)))
 
+(defmacro write-pixel (x y color)
+  `(sdl:write-pixel
+    pix ,x ,y
+    (apply #'sdl-cffi::sdl-map-rgba
+	   (concatenate 'list
+			(list (sdl-base:pixel-format surface-fp))
+			(sdl:fp ,color)))))
+
 (defun evolve ()
   (let ((surface-fp (sdl:fp sdl:*default-display*))
-        (sy (or *sy* (if (eql *neighbourhood* :1d) 1 0)))
+        (sy (or *sy* (if (eql *neighbourhood* :elementary) 1 0)))
         (ey (or *ey* (1- *window-height*))))
     (setf *cached-values* (clrhash *cached-values*))
     (sdl:with-pixel (pix surface-fp)
       (sdl:with-color (col (sdl:color))
         (loop for y from sy to ey
               do (loop for x from 0 below *window-width*
-                       do (sdl:write-pixel
-                           pix x y
-                           (apply #'sdl-cffi::sdl-map-rgba
-                                  (concatenate 'list
-                                               (list (sdl-base:pixel-format surface-fp))
-                                               (sdl:fp (color-for-pixel x y)))))))))))
+                       do (write-pixel x y (color-for-pixel x y))))))))
 
 (defun initialize (&optional shapes)
   (sdl:with-init (sdl:sdl-init-video)
     (sdl:window *window-width* *window-height*
-                :title-caption "Cellular automata generation")
+                :title-caption "Cellular automata generation"
+		:no-frame t)
     (setf (sdl:frame-rate) 60)
     (sdl:clear-display (color 0))
 
@@ -108,7 +112,7 @@
 
     (if shapes
 	(eval shapes)
-        (draw-starting-points))
+        (draw-starting-pixels))
     (sdl:with-events ()
       (:quit-event () t)
       (:idle ()
