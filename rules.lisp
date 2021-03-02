@@ -46,7 +46,7 @@
 
 (defun ruleset (n)
   (let ((max-pwr (case *neighbourhood*
-                   (:1d 8)
+                   (:elementary 8)
                    (:neumann 32)
                    (:moore 512)
                    (t 0)))
@@ -57,7 +57,7 @@
                        (loop for i from 0 below max-pwr
                              collect (decimal-to-binary-list i
                                                              (case *neighbourhood*
-                                                               (:1d 3)
+                                                               (:elementary 3)
                                                                (:neumann 5)
                                                                (:moore 9)))))))
         (mapcar (lambda (pattern state)
@@ -67,7 +67,7 @@
         ruleset))))
 
 (defun draw-starting-pixels ()
-  (cond ((eql *neighbourhood* :1d)
+  (cond ((eql *neighbourhood* :elementary)
 	 (sdl:draw-pixel (sdl:point :x (/ *window-width* 2) :y 0)
 			 :color (color 1)))
 	((eql *ruleset* :game-of-life)

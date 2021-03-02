@@ -43,7 +43,7 @@
         (cons 28 (sdl:color :r 235 :g 36  :b 36  :a 255))))
 
 (defun start (&key (h 500) (w 500)
-                (ruleset 1) (neighbourhood :1d) shapes)
+                (ruleset 1) (neighbourhood :elementary) shapes)
   "Start the program."
   (setf *window-width* w)
   (setf *window-height* h)
