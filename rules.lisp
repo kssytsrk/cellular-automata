@@ -10,7 +10,13 @@
     (:wireworld    (wireworld-transition-rule cells))
     (t             (if (hash-table-p *ruleset*)
 		       (gethash (if *totalistic*
-				    (/ (reduce #'+ cells) 3)
+				    (progn
+				      (/ (reduce #'+ cells)
+					 (case *neighbourhood*
+					   (:elementary 3)
+					   (:neumann 5)
+					   (:moore 9)
+					   (t 0))))
 				    cells)
 				*ruleset*)
                        :wrong-ruleset-name))))
@@ -39,14 +45,6 @@
                             ((1 2) 1)
                             (t 3))))))))
 
-(defun decimal-to-binary-list (number padding)
-  (map 'list
-       (lambda (char)
-         (parse-integer (string char)))
-       (format nil
-               (concatenate 'string "~" (format nil "~a" padding) ",'0b")
-               number)))
-
 (defun ruleset (n)
   (let ((max-pwr (case *neighbourhood*
                    (:elementary 8)
@@ -55,60 +53,40 @@
                    (t 0)))
         (ruleset (make-hash-table :test #'equal)))
     (when (and (>= n 0) (< n (expt 2 max-pwr)))
-      (let ((states (decimal-to-binary-list n max-pwr))
+      (let ((states (decimal-to-base-n-list n max-pwr 2))
             (patterns (reverse
                        (loop for i from 0 below max-pwr
-                             collect (decimal-to-binary-list i
+                             collect (decimal-to-base-n-list i
                                                              (case *neighbourhood*
                                                                (:elementary 3)
                                                                (:neumann 5)
-                                                               (:moore 9)))))))
+                                                               (:moore 9))
+							     2)))))
         (mapcar (lambda (pattern state)
                     (setf (gethash pattern ruleset)
                           state))
                 patterns states)
         ruleset))))
 
-(defun decimal-to-base-3-list (number padding)
-  (map 'list
-       (lambda (char)
-         (parse-integer (string char)))
-       (format nil
-               (concatenate 'string "~3," (format nil "~a" padding) ",'0R")
-               number)))
-
-(defun totalistic-ruleset (n)
-  (let ((max-pwr (case *neighbourhood*
-                   (:elementary 7)
-                   (t 0)))
+(defun totalistic-ruleset (n &optional (color-number 3))
+  (let ((max-pwr (+ 1 (* (case *neighbourhood*
+			   (:elementary 3)
+			   (:neumann 5)
+			   (:moore 9)
+			   (t 0))
+			 (1- color-number))))
         (ruleset (make-hash-table :test #'equal)))
-    (when (and (>= n 0) (< n (expt 3 max-pwr)))
-      (let ((states (decimal-to-base-3-list n max-pwr))
+    (when (and (>= n 0) (< n (expt color-number max-pwr)))
+      (let ((states (decimal-to-base-n-list n max-pwr color-number))
             (patterns (reverse
-                       (loop for i from 0 to 2 by 1/3
+                       (loop for i from 0 to (1- color-number) by (case *neighbourhood*
+								    (:elementary 1/3)
+								    (:neumann 1/5)
+								    (:moore 1/9)
+								    (t 1))
                              collect i))))
         (mapcar (lambda (pattern state)
                     (setf (gethash pattern ruleset)
                           state))
                 patterns states)
 	ruleset))))
-
-(defun draw-starting-pixels ()
-  (cond ((eql *neighbourhood* :elementary)
-	 (sdl:draw-pixel (sdl:point :x (/ *window-width* 2) :y 0)
-			 :color (color 1)))
-	((eql *ruleset* :game-of-life)
-	 (sdl:draw-line-* (- (/ *window-width* 2) 10)
-			  (/ *window-height* 2)
-			  (+ (/ *window-width* 2) 10)
-			  (/ *window-height* 2)
-			  :color (color 1)))
-	((eql *ruleset* :wireworld)
-	 (sdl:draw-line-*  10 10  40            10 :color (ca::color 3))
-	 (sdl:draw-line-*   0 11   9            11 :color (ca::color 3))
-	 (sdl:draw-line-*  10 12  40            12 :color (ca::color 3))
-	 (sdl:draw-line-*  40 11 *window-width* 11 :color (ca::color 3))
-	 (sdl:draw-pixel-* 50 11                   :color (ca::color 1)))
-	(t (sdl:draw-pixel (sdl:point :x (/ *window-width* 2)
-				      :y (/ *window-height* 2))
-			   :color (color 1)))))
