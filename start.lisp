@@ -55,16 +55,18 @@
         (cons 28 (sdl:color :r 235 :g 36  :b 36  :a 255))))
 
 (defun start (&key (h 500) (w 500)
-                (ruleset 1) (neighbourhood :elementary) (totalistic nil)
-		(colors :golly)	(color-number 2) (number-of-neighbours nil)
-                (auto-evolve t)
+                (ruleset 1) (neighbourhood :elementary) (tag nil)
+		(colors :golly)	(color-number 2) (auto-evolve t)
 		shapes)
   "Start the program."
   (setf *window-width* w)
   (setf *window-height* h)
   (setf *neighbourhood* neighbourhood)
-  (setf *totalistic* totalistic)
-  (setf *number-of-neighbours* number-of-neighbours)
+  (case tag
+    (:totalistic
+     (setf *totalistic* t))
+    (:number-of-neighbours
+     (setf *number-of-neighbours* t)))
   (setf *auto-evolve* auto-evolve)
   (case colors
     (:golly     (setf *colors* *colors-golly*))
