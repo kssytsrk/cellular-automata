@@ -9,15 +9,17 @@
     (:game-of-life (game-of-life-transition-rule cells))
     (:wireworld    (wireworld-transition-rule cells))
     (t             (if (hash-table-p *ruleset*)
-		       (gethash (if *totalistic*
-				    (progn
-				      (/ (reduce #'+ cells)
-					 (case *neighbourhood*
-					   (:elementary 3)
-					   (:neumann 5)
-					   (:moore 9)
-					   (t 0))))
-				    cells)
+		       (gethash (cond (*totalistic*
+				       (/ (reduce #'+ cells)
+					  (case *neighbourhood*
+					    (:elementary 3)
+					    (:neumann 5)
+					    (:moore 9)
+					    (t 0))))
+				      (*number-of-neighbours*
+                                       (list (first cells)
+					     (reduce #'+ (rest cells))))
+				      (t cells))
 				*ruleset*)
                        :wrong-ruleset-name))))
 
@@ -63,7 +65,7 @@
                                                                (:moore 9))
 							     2)))))
         (mapcar (lambda (pattern state)
-                    (setf (gethash pattern ruleset)
+		  (setf (gethash pattern ruleset)
                           state))
                 patterns states)
         ruleset))))
@@ -90,3 +92,22 @@
                           state))
                 patterns states)
 	ruleset))))
+
+(defun number-of-neighbours-ruleset (n)
+    (let ((max (case *neighbourhood*
+		 (:elementary 3)
+		 (:neumann 5)
+		 (:moore 9)
+		 (t 0)))
+        (ruleset (make-hash-table :test #'equal)))
+      (when (and (>= n 0) (< n (expt 2 (* 2 max))))
+	(let ((states (decimal-to-base-n-list n (* 2 max) 2))
+            (patterns (reverse
+                       (loop for i from 0 below max
+                             append (list (list 0 i)
+					  (list 1 i))))))
+	  (mapcar (lambda (pattern state)
+		    (setf (gethash pattern ruleset)
+                          state))
+                patterns states)
+        ruleset))))

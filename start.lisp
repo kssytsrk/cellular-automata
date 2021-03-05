@@ -11,6 +11,8 @@
 
 (defparameter *neighbourhood* nil)
 (defparameter *totalistic* nil)
+(defparameter *number-of-neighbours* nil)
+(defparameter *auto-evolve* nil)
 
 (defparameter *colors* nil)
 
@@ -54,21 +56,25 @@
 
 (defun start (&key (h 500) (w 500)
                 (ruleset 1) (neighbourhood :elementary) (totalistic nil)
-		(colors :golly)	(color-number 2) shapes)
+		(colors :golly)	(color-number 2) (number-of-neighbours nil)
+                (auto-evolve t)
+		shapes)
   "Start the program."
   (setf *window-width* w)
   (setf *window-height* h)
   (setf *neighbourhood* neighbourhood)
   (setf *totalistic* totalistic)
+  (setf *number-of-neighbours* number-of-neighbours)
+  (setf *auto-evolve* auto-evolve)
   (case colors
     (:golly     (setf *colors* *colors-golly*))
     (:grayscale (setf *colors* *colors-grayscale*)))
 
   (if (or (and (not (realp ruleset))
                (setf *ruleset* ruleset))
-          (setf *ruleset* (if *totalistic*
-			      (totalistic-ruleset ruleset color-number)
-			      (ruleset ruleset))))
+          (setf *ruleset* (cond (*totalistic* (totalistic-ruleset ruleset color-number))
+				(*number-of-neighbours* (number-of-neighbours-ruleset ruleset))
+				(t (ruleset ruleset)))))
       (initialize shapes)
       (format t "Wrong ruleset number input.")))
 

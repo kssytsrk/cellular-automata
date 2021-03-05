@@ -52,13 +52,14 @@
         (pixel-value (1+ x) (1- y)) ; v7
         ))
 
-(defun color-for-pixel (x y)
+(defun color-for-pixel (x y &key (use-cache t))
   (let* ((neighbours (case *neighbourhood*
                       (:elementary (elementary-neighbours-values x y))
                       (:neumann    (neumann-neighbours-values x y))
                       (:moore      (moore-neighbours-values x y))))
          (new-value (transition-rule neighbours)))
-    (setf (gethash (list x y) *cached-values*) new-value)
+    (if use-cache
+        (setf (gethash (list x y) *cached-values*) new-value))
     (when (not (eql new-value 0))
       (let ((1-y (check-and-fix-bounds :y (1- y)))
             (1+y (check-and-fix-bounds :y (1+ y))))
@@ -99,6 +100,31 @@
               do (loop for x from 0 below *window-width*
                        do (write-pixel x y (color-for-pixel x y))))))))
 
+(defun evolve-from-prevgen ()
+  (let ((surface-fp (sdl:fp sdl:*default-display*))
+        (sy (or *sy* (if (eql *neighbourhood* :elementary) 1 0)))
+        (ey (or *ey* (1- *window-height*))))
+    (setf *cached-values* (clrhash *cached-values*))
+    (sdl:with-pixel (pix surface-fp)
+      (sdl:with-color (col (sdl:color))
+        (let ((new-gen
+                (loop for y from sy to ey
+		      with new-gen = nil
+		      do (loop for x from 0 below *window-width*
+			       do (push (list x y (color-for-pixel x y
+                                                                   :use-cache nil))
+					new-gen))
+			     finally (return new-gen))))
+	  (loop for element in new-gen
+		do (write-pixel (first element)
+				(second element)
+				(third element))
+                   (setf (gethash (list (first  element)
+                                        (second element))
+                                  *cached-values*)
+                         (rassoc (third element)
+                                 *colors* :test #'sdl:color=))))))))
+
 (defun initialize (&optional shapes)
   (sdl:with-init (sdl:sdl-init-video)
     (sdl:window *window-width* *window-height*
@@ -113,15 +139,32 @@
     (if shapes
 	(eval shapes)
         (draw-starting-pixels))
-    (sdl:with-events ()
-      (:quit-event () t)
-      (:idle ()
-             (when (sdl:mouse-left-p)
-               (sdl:draw-pixel
-                (sdl:point :x (sdl:mouse-x)
-                           :y (sdl:mouse-y))
-                :color (color 1))
-               (setf *sy* (min *sy* (sdl:mouse-y)))
-               (setf *ey* (max *ey* (sdl:mouse-y))))
-             (evolve)
-             (sdl:update-display)))))
+
+    (let (pause)
+      (sdl:with-events (:poll)
+        (:quit-event () t)
+        (:key-up-event (:key key)
+                       (cond ((sdl:key= key :SDL-KEY-ESCAPE)
+                              (sdl:push-quit-event))
+                             ((sdl:key= key :SDL-KEY-SPACE)
+                              (unless pause
+                                (if *number-of-neighbours*
+                                    (evolve-from-prevgen)
+                                    (evolve)))
+                              (sdl:update-display))))
+        (:idle ()
+               (when (sdl:mouse-left-p)
+                 (sdl:draw-pixel
+                  (sdl:point :x (sdl:mouse-x)
+                             :y (sdl:mouse-y))
+                  :color (color 1))
+                 (setf *sy* (min *sy* (sdl:mouse-y)))
+                 (setf *ey* (max *ey* (sdl:mouse-y))))
+               (unless pause
+                 (if *auto-evolve*
+                     (if *number-of-neighbours*
+                         (evolve-from-prevgen)
+                         (evolve)))
+                 (if (eql *neighbourhood* :elementary)
+                     (setf pause t)))
+               (sdl:update-display))))))
