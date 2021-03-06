@@ -125,7 +125,7 @@
                          (rassoc (third element)
                                  *colors* :test #'sdl:color=))))))))
 
-(defun initialize (&optional shapes)
+(defun initialize (&optional steps shapes)
   (sdl:with-init (sdl:sdl-init-video)
     (sdl:window *window-width* *window-height*
                 :title-caption "Cellular automata generation"
@@ -160,11 +160,12 @@
                   :color (color 1))
                  (setf *sy* (min *sy* (sdl:mouse-y)))
                  (setf *ey* (max *ey* (sdl:mouse-y))))
-               (unless pause
+               (unless (or pause (eql 0 steps))
                  (if *auto-evolve*
                      (if *number-of-neighbours*
                          (evolve-from-prevgen)
                          (evolve)))
                  (if (eql *neighbourhood* :elementary)
-                     (setf pause t)))
+                     (setf pause t))
+                 (decf steps))
                (sdl:update-display))))))

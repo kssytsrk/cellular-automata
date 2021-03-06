@@ -54,19 +54,21 @@
         (cons 27 (sdl:color :r 185 :g 56  :b 255 :a 255))
         (cons 28 (sdl:color :r 235 :g 36  :b 36  :a 255))))
 
-(defun start (&key (h 500) (w 500)
+(defun start (&key (h 300) (w 600)
                 (ruleset 1) (neighbourhood :elementary) (tag nil)
+                (steps nil)
 		(colors :golly)	(color-number 2) (auto-evolve t)
 		shapes)
   "Start the program."
   (setf *window-width* w)
   (setf *window-height* h)
   (setf *neighbourhood* neighbourhood)
-  (case tag
-    (:totalistic
-     (setf *totalistic* t))
-    (:number-of-neighbours
-     (setf *number-of-neighbours* t)))
+  (setf *totalistic* (eql tag :totalistic))
+  (setf *number-of-neighbours* (eql tag :number-of-neighbours))
+  (when (and (< h steps)
+             (eql *neighbourhood* :elementary))
+    (setf *window-height* steps)
+    (setf *window-width* (* 2 *window-height*)))
   (setf *auto-evolve* auto-evolve)
   (case colors
     (:golly     (setf *colors* *colors-golly*))
@@ -77,7 +79,7 @@
           (setf *ruleset* (cond (*totalistic* (totalistic-ruleset ruleset color-number))
 				(*number-of-neighbours* (number-of-neighbours-ruleset ruleset))
 				(t (ruleset ruleset)))))
-      (initialize shapes)
+      (initialize steps shapes)
       (format t "Wrong ruleset number input.")))
 
 (defun draw-starting-pixels ()
