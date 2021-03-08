@@ -7,8 +7,8 @@
 (defun assoc-rh (item alist &key (test #'eql))
   (cdr (assoc item alist :test test)))
 
-(defun color (number)
-  (assoc-rh number *colors*))
+(defun color (number colorset)
+  (assoc-rh number colorset))
 
 (defun unpack-color (uint-color)
   (sdl:color :r (logand (ash uint-color -16) 255)

@@ -9,114 +9,43 @@
 (defparameter *sy* nil)
 (defparameter *ey* nil)
 
-(defun check-and-fix-bounds (&key x y)
-  (and x
-       (cond ((= x *window-width*) (setf x 0))
-             ((< x 0) (setf x (1- *window-width*)))))
-  (and y
-       (cond ((= y *window-height*) (setf y 0))
-             ((< y 0) (setf y (1- *window-height*)))))
-  (if (and x y) (values x y) (or x y)))
-
-(defun pixel-value (x y)
-  (multiple-value-bind (x y) (check-and-fix-bounds :x x :y y)
-    (or (gethash (list x y) *cached-values*)
-        (setf (gethash (list x y) *cached-values*)
-              (let ((surface-fp (sdl:fp sdl:*default-display*)))
-                (sdl:with-pixel (pix surface-fp)
-                  (car (rassoc (unpack-color (sdl:read-pixel pix x y))
-                               *colors* :test #'sdl:color=))))))))
-
-(defun elementary-neighbours-values (x y)
-  (list (pixel-value (1- x) (1- y))
-        (pixel-value x (1- y))
-        (pixel-value (1+ x) (1- y))))
-
-(defun neumann-neighbours-values (x y)
-  (list (pixel-value     x     y)  ; v
-        (pixel-value (1+ x)    y)  ; v0
-        (pixel-value     x (1+ y)) ; v1
-        (pixel-value (1- x) y)     ; v2
-        (pixel-value     x (1- y)) ; v3
-        ))
-
-(defun moore-neighbours-values (x y)
-  (list (pixel-value     x       y) ; v
-        (pixel-value (1+ x)      y) ; v0
-        (pixel-value     x  (1+ y)) ; v1
-        (pixel-value (1- x)      y) ; v2
-        (pixel-value     x  (1- y)) ; v3
-        (pixel-value (1+ x) (1+ y)) ; v4
-        (pixel-value (1- x) (1+ y)) ; v5
-        (pixel-value (1- x) (1- y)) ; v6
-        (pixel-value (1+ x) (1- y)) ; v7
-        ))
-
-(defun color-for-pixel (x y &key (use-cache t))
-  (let* ((neighbours (case *neighbourhood*
-                      (:elementary (elementary-neighbours-values x y))
-                      (:neumann    (neumann-neighbours-values x y))
-                      (:moore      (moore-neighbours-values x y))))
-         (new-value (transition-rule neighbours)))
-    (if use-cache
-        (setf (gethash (list x y) *cached-values*) new-value))
-    (when (not (eql new-value 0))
-      (let ((1-y (check-and-fix-bounds :y (1- y)))
-            (1+y (check-and-fix-bounds :y (1+ y))))
-        (if *sy*
-            (setf *sy* (min *sy* 1-y 1+y))
-            (setf *sy* (min 1-y 1+y)))
-	(if (and (eql *neighbourhood* :elementary)
-		 (< *sy* 1))
-	    (setf *sy* 1))
-        (if *ey*
-            (setf *ey* (max *ey* 1-y 1+y))
-            (setf *ey* (max 1-y 1+y)))))
-    (unless (numberp new-value)
-      (format t "~&Pixel at x ~a, y ~a, current value: ~a new value: ~a"
-              x y
-              (pixel-value x y)
-              new-value)
-      (format t "~&Neighbourhood: ~a" *neighbourhood*)
-      (format t "~&Ruleset: ~a" *ruleset*))
-    (color new-value)))
-
-(defmacro write-pixel (x y color)
-  `(sdl:write-pixel
-    pix ,x ,y
-    (apply #'sdl-cffi::sdl-map-rgba
-	   (concatenate 'list
-			(list (sdl-base:pixel-format surface-fp))
-			(sdl:fp ,color)))))
-
-(defun evolve ()
+(defun evolve (neighbourhood ruleset colorset tag)
   (let ((surface-fp (sdl:fp sdl:*default-display*))
-        (sy (or *sy* (if (eql *neighbourhood* :elementary) 1 0)))
-        (ey (or *ey* (1- *window-height*))))
+        (sy (or *sy* (if (eql neighbourhood :elementary) 1 0)))
+        (ey (or *ey* (1- (elt (sdl:video-dimensions) 1)))))
     (setf *cached-values* (clrhash *cached-values*))
     (sdl:with-pixel (pix surface-fp)
       (sdl:with-color (col (sdl:color))
         (loop for y from sy to ey
-              do (loop for x from 0 below *window-width*
-                       do (write-pixel x y (color-for-pixel x y))))))))
+              do (loop for x from 0 below (elt (sdl:video-dimensions) 0)
+                       do (write-pixel pix x y (color-for-pixel ruleset
+                                                                neighbourhood
+                                                                colorset
+                                                                tag
+                                                                x y))))))))
 
-(defun evolve-from-prevgen ()
+(defun evolve-from-prevgen (neighbourhood ruleset colorset tag)
   (let ((surface-fp (sdl:fp sdl:*default-display*))
-        (sy (or *sy* (if (eql *neighbourhood* :elementary) 1 0)))
-        (ey (or *ey* (1- *window-height*))))
+        (sy (or *sy* (if (eql neighbourhood :elementary) 1 0)))
+        (ey (or *ey* (1- (elt (sdl:video-dimensions) 1)))))
     (setf *cached-values* (clrhash *cached-values*))
     (sdl:with-pixel (pix surface-fp)
       (sdl:with-color (col (sdl:color))
         (let ((new-gen
                 (loop for y from sy to ey
 		      with new-gen = nil
-		      do (loop for x from 0 below *window-width*
-			       do (push (list x y (color-for-pixel x y
+		      do (loop for x from 0 below (elt (sdl:video-dimensions) 0)
+			       do (push (list x y (color-for-pixel ruleset
+                                                                   neighbourhood
+                                                                   colorset
+                                                                   tag
+                                                                   x y
                                                                    :use-cache nil))
 					new-gen))
-			     finally (return new-gen))))
+                      finally (return new-gen))))
 	  (loop for element in new-gen
-		do (write-pixel (first element)
+		do (write-pixel pix
+                                (first element)
 				(second element)
 				(third element))
                    (setf (gethash (list (first  element)
@@ -125,47 +54,68 @@
                          (rassoc (third element)
                                  *colors* :test #'sdl:color=))))))))
 
-(defun initialize (&optional steps shapes)
+(defun start (&key (h 300) (w 600)
+                (ruleset 1) (neighbourhood :elementary) (tag nil)
+                (steps nil)
+                (colors :golly)	(states 2) (auto t)
+                starting-pixels)
+  (when (and steps
+             (eql neighbourhood :elementary))
+    (setf h steps)
+    (setf w (* 2 h)))
+  (case colors
+    (:golly     (setf colors *colors-golly*))
+    (:grayscale (setf colors *colors-grayscale*)))
+  (unless (or (not (realp ruleset))
+              (setf ruleset (case tag
+                              (:totalistic
+                               (totalistic-ruleset ruleset neighbourhood states))
+                              (:number-of-neighbours
+                               (number-of-neighbours-ruleset ruleset neighbourhood))
+                              (t (ruleset ruleset neighbourhood)))))
+    (error "Invalid ruleset input."))
+
   (sdl:with-init (sdl:sdl-init-video)
-    (sdl:window *window-width* *window-height*
+    (sdl:window w h
                 :title-caption "Cellular automata generation"
 		:no-frame t)
     (setf (sdl:frame-rate) 60)
-    (sdl:clear-display (color 0))
+    (sdl:clear-display (color 0 colors))
 
     (setf *sy* nil
           *ey* nil)
 
-    (if shapes
-	(eval shapes)
-        (draw-starting-pixels))
+    (if starting-pixels
+	(eval starting-pixels)
+        (draw-starting-pixels neighbourhood ruleset colors))
 
-    (let (pause)
-      (sdl:with-events (:poll)
+    (let ((evolve-fn (if (eql tag :number-of-neighbours)
+                         #'evolve-from-prevgen
+                         #'evolve))
+          pause)
+      (sdl:with-events ()
         (:quit-event () t)
         (:key-up-event (:key key)
                        (cond ((sdl:key= key :SDL-KEY-ESCAPE)
                               (sdl:push-quit-event))
                              ((sdl:key= key :SDL-KEY-SPACE)
                               (unless pause
-                                (if *number-of-neighbours*
-                                    (evolve-from-prevgen)
-                                    (evolve)))
+                                (funcall evolve-fn
+                                         neighbourhood ruleset colors tag))
                               (sdl:update-display))))
         (:idle ()
                (when (sdl:mouse-left-p)
                  (sdl:draw-pixel
                   (sdl:point :x (sdl:mouse-x)
                              :y (sdl:mouse-y))
-                  :color (color 1))
+                  :color (color 1 colors))
                  (setf *sy* (min *sy* (sdl:mouse-y)))
                  (setf *ey* (max *ey* (sdl:mouse-y))))
-               (unless (or pause (eql 0 steps))
-                 (if *auto-evolve*
-                     (if *number-of-neighbours*
-                         (evolve-from-prevgen)
-                         (evolve)))
-                 (if (eql *neighbourhood* :elementary)
-                     (setf pause t))
-                 (decf steps))
+               (unless pause
+                 (if auto
+                     (funcall evolve-fn neighbourhood ruleset colors tag))
+                 (if steps
+                     (decf steps))
+                 (if (eql steps 0)
+                     (setf pause t)))
                (sdl:update-display))))))
