@@ -92,7 +92,7 @@
 	(eval starting-pixels)
         (draw-starting-pixels neighbourhood (car ruleset) colors))
 
-    (let ((evolve-fn (if (eql tag :number-of-neighbours)
+    (let ((evolve-fn (if (eql tag :neighbour-number)
                          #'evolve-from-prevgen
                          #'evolve))
           pause)

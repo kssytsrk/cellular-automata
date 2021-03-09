@@ -40,7 +40,7 @@
               (length cells))
            ruleset))
 
-(defun number-of-neighbours-transition-rule (cells ruleset)
+(defun neighbour-number-transition-rule (cells ruleset)
   (gethash (list (first cells) (reduce #'+ (rest cells)))
            ruleset))
 
@@ -91,7 +91,7 @@
                 patterns states)
 	ruleset))))
 
-(defun number-of-neighbours-ruleset (n neighbourhood possible-states)
+(defun neighbour-number-ruleset (n neighbourhood possible-states)
   (declare (ignore possible-states))
   (let ((max (case neighbourhood
                (:elementary 3)
@@ -117,6 +117,6 @@
    (cons :wireworld            (cons nil #'wireworld-transition-rule))
    (cons :totalistic           (cons #'totalistic-ruleset
                                      #'totalistic-transition-rule))
-   (cons :number-of-neighbours (cons #'number-of-neighbours-ruleset
-                                     #'number-of-neighbours-transition-rule))
+   (cons :neighbour-number     (cons #'neighbour-number-ruleset
+                                     #'neighbour-number-transition-rule))
    (cons :normal               (cons #'ruleset #'-transition-rule))))
