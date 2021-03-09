@@ -25,7 +25,7 @@ To simulate a cellular automaton, evaluate the `ca:start` function.
 
 ## Examples
 
-To look at some [subjectively] cute cellular automatons you can evaluate these commands:
+To look at some [subjectively] cute cellular automata you can evaluate these commands:
 ```common-lisp
 ;; This is rule 30 of an 1-dimensional cellular automaton.
 ;; The size of the window is 200px x 200px.
