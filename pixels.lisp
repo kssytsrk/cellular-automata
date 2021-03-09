@@ -59,9 +59,9 @@
              (:moore      #'moore-neighbours-values))
            x y colorset))
 
-(defun color-for-pixel (ruleset neighbourhood colorset tag x y &key (use-cache t))
+(defun color-for-pixel (ruleset neighbourhood colorset x y &key (use-cache t))
   (let* ((cells (neighbours-values neighbourhood x y colorset))
-         (new-value (transition-rule cells ruleset tag)))
+         (new-value (transition-rule cells ruleset)))
     (if use-cache
         (setf (gethash (list x y) *cached-values*) new-value))
     (when (not (eql new-value 0))

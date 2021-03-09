@@ -9,7 +9,7 @@
 (defparameter *sy* nil)
 (defparameter *ey* nil)
 
-(defun evolve (neighbourhood ruleset colorset tag)
+(defun evolve (neighbourhood ruleset colorset)
   (let ((surface-fp (sdl:fp sdl:*default-display*))
         (sy (or *sy* (if (eql neighbourhood :elementary) 1 0)))
         (ey (or *ey* (1- (elt (sdl:video-dimensions) 1)))))
@@ -21,10 +21,9 @@
                        do (write-pixel pix x y (color-for-pixel ruleset
                                                                 neighbourhood
                                                                 colorset
-                                                                tag
                                                                 x y))))))))
 
-(defun evolve-from-prevgen (neighbourhood ruleset colorset tag)
+(defun evolve-from-prevgen (neighbourhood ruleset colorset)
   (let ((surface-fp (sdl:fp sdl:*default-display*))
         (sy (or *sy* (if (eql neighbourhood :elementary) 1 0)))
         (ey (or *ey* (1- (elt (sdl:video-dimensions) 1)))))
@@ -38,7 +37,6 @@
 			       do (push (list x y (color-for-pixel ruleset
                                                                    neighbourhood
                                                                    colorset
-                                                                   tag
                                                                    x y
                                                                    :use-cache nil))
 					new-gen))
@@ -57,7 +55,7 @@
 (defun start (&key (h 300) (w 600)
                 (ruleset 1) (neighbourhood :elementary) (tag nil)
                 (steps nil)
-                (colors :golly)	(states 2) (auto t)
+                (colors :grayscale) (states 2) (auto t)
                 starting-pixels)
   (when (and steps
              (eql neighbourhood :elementary))
@@ -66,13 +64,18 @@
   (case colors
     (:golly     (setf colors *colors-golly*))
     (:grayscale (setf colors *colors-grayscale*)))
-  (unless (or (not (realp ruleset))
-              (setf ruleset (case tag
-                              (:totalistic
-                               (totalistic-ruleset ruleset neighbourhood states))
-                              (:number-of-neighbours
-                               (number-of-neighbours-ruleset ruleset neighbourhood))
-                              (t (ruleset ruleset neighbourhood)))))
+
+  (cond ((not (null tag))
+         (setf ruleset (cons tag
+                             (funcall (car (assoc-rh tag *rules*
+                                                     :test #'equal))
+                                      ruleset neighbourhood states))))
+        ((not (realp ruleset))
+         (setf ruleset (list ruleset t)))
+        (t (setf ruleset (cons :normal (funcall (car (assoc-rh :normal *rules*
+                                                               :test #'equal))
+                                                ruleset neighbourhood states)))))
+  (unless (cdr ruleset)
     (error "Invalid ruleset input."))
 
   (sdl:with-init (sdl:sdl-init-video)
@@ -87,7 +90,7 @@
 
     (if starting-pixels
 	(eval starting-pixels)
-        (draw-starting-pixels neighbourhood ruleset colors))
+        (draw-starting-pixels neighbourhood (car ruleset) colors))
 
     (let ((evolve-fn (if (eql tag :number-of-neighbours)
                          #'evolve-from-prevgen
@@ -101,7 +104,7 @@
                              ((sdl:key= key :SDL-KEY-SPACE)
                               (unless pause
                                 (funcall evolve-fn
-                                         neighbourhood ruleset colors tag))
+                                         neighbourhood ruleset colors))
                               (sdl:update-display))))
         (:idle ()
                (when (sdl:mouse-left-p)
@@ -113,7 +116,7 @@
                  (setf *ey* (max *ey* (sdl:mouse-y))))
                (unless pause
                  (if auto
-                     (funcall evolve-fn neighbourhood ruleset colors tag))
+                     (funcall evolve-fn neighbourhood ruleset colors))
                  (if steps
                      (decf steps))
                  (if (eql steps 0)
