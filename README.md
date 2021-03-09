@@ -1,5 +1,6 @@
 # cellular-automata (ca)
 ### by _kssytsrk <kassy@dismail.de>_
+![rule 581, totalistic elementary 3-state cellular automata](/img/581-totalistic.png "rule 581, totalistic elementary 3-state cellular automata")
 
 This project simulates a cellular automata environment using the [lispbuilder-sdl](https://github.com/lispbuilder/lispbuilder) graphics library. Rulesets currently implemented are all of the basic elementary/1-dimensional ones, totalistic and neighbour-number schemes, any 2-states Neumann/Moore neighbourhood ones (if you can find the exact ruleset number, that is), Wireworld and Game of Life. 
 
@@ -26,18 +27,23 @@ To simulate a cellular automaton, evaluate the `ca:start` function.
 
 To look at some [subjectively] cute cellular automatons you can evaluate these commands:
 ```common-lisp
-;;; This is rule 30 of an 1-dimensional cellular automaton.
-;;; The size of the window is 200px x 200px.
+;; This is rule 30 of an 1-dimensional cellular automaton.
+;; The size of the window is 200px x 200px.
 (ca:start :h 200 :w 200 :ruleset 30)
 ```
 ```common-lisp
-;;; This is rule 2049 of an 1-dimensional totalistic 3-state cellular automaton.
+;; This is rule 2049 of an 1-dimensional totalistic 3-state cellular automaton.
 (ca:start :ruleset 2049 :tag :totalistic :states 3)
 ```
 ```common-lisp
-;;; This is rule 452 of a 2-dimensional neighbour-number cellular automaton.
-;;; The size of the window is 400px x 400px. The colorscheme used is golly.
+;; This is rule 452 of a 2-dimensional neighbour-number cellular automaton.
+;; The size of the window is 400px x 400px. The colorscheme used is golly.
 (ca:start :w 400 :h 400 :ruleset 452 :neighbourhood :neumann :tag :neighbour-number :colors :golly)
+```
+```common-lisp
+;; Ruleset shown on the demo image above.
+;; Rule 581 of an 1-dimensional totalistic 3-state cellular automata
+(ca:start :ruleset 581 :tag :totalistic :states 3)
 ```
 
 Use `Escape` or your window manager's button/keybinding to close the window and stop the simulation.
