@@ -63,7 +63,11 @@
     (setf w (* 2 h)))
   (case colors
     (:golly     (setf colors *colors-golly*))
-    (:grayscale (setf colors *colors-grayscale*)))
+    (:grayscale
+     (setf colors *colors-grayscale*)
+     (setf colors (acons (1- states)
+                         (sdl:color :r 0 :g 0 :b 0 :a 255)
+                         colors))))
 
   (cond ((not (null tag))
          (setf ruleset (cons tag
