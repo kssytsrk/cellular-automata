@@ -9,48 +9,41 @@
 (defparameter *sy* nil)
 (defparameter *ey* nil)
 
+(defmacro next-gen-loop (action)
+  `(let ((sy (or *sy* (if (eql neighbourhood :elementary) 1 0)))
+         (ey (or *ey* (1- (elt (sdl:video-dimensions) 1)))))
+     (setf *cached-values* (clrhash *cached-values*))
+     (loop for y from sy to ey
+           with result = nil
+           append (loop for x from 0 below (elt (sdl:video-dimensions) 0)
+                        collect ,action))))
+
 (defun evolve (neighbourhood ruleset colorset)
-  (let ((surface-fp (sdl:fp sdl:*default-display*))
-        (sy (or *sy* (if (eql neighbourhood :elementary) 1 0)))
-        (ey (or *ey* (1- (elt (sdl:video-dimensions) 1)))))
-    (setf *cached-values* (clrhash *cached-values*))
+  (let ((surface-fp (sdl:fp sdl:*default-display*)))
     (sdl:with-pixel (pix surface-fp)
-      (sdl:with-color (col (sdl:color))
-        (loop for y from sy to ey
-              do (loop for x from 0 below (elt (sdl:video-dimensions) 0)
-                       do (write-pixel pix x y (color-for-pixel ruleset
-                                                                neighbourhood
-                                                                colorset
-                                                                x y))))))))
+      (next-gen-loop (write-pixel pix x y (color-for-pixel ruleset neighbourhood
+                                                           colorset
+                                                           x y))))))
 
 (defun evolve-from-prevgen (neighbourhood ruleset colorset)
-  (let ((surface-fp (sdl:fp sdl:*default-display*))
-        (sy (or *sy* (if (eql neighbourhood :elementary) 1 0)))
-        (ey (or *ey* (1- (elt (sdl:video-dimensions) 1)))))
-    (setf *cached-values* (clrhash *cached-values*))
-    (sdl:with-pixel (pix surface-fp)
-      (sdl:with-color (col (sdl:color))
-        (let ((new-gen
-                (loop for y from sy to ey
-		      with new-gen = nil
-		      do (loop for x from 0 below (elt (sdl:video-dimensions) 0)
-			       do (push (list x y (color-for-pixel ruleset
-                                                                   neighbourhood
-                                                                   colorset
-                                                                   x y
-                                                                   :use-cache nil))
-					new-gen))
-                      finally (return new-gen))))
-	  (loop for element in new-gen
-		do (write-pixel pix
-                                (first element)
-				(second element)
-				(third element))
-                   (setf (gethash (list (first  element)
-                                        (second element))
-                                  *cached-values*)
-                         (rassoc (third element)
-                                 *colors* :test #'sdl:color=))))))))
+  (let ((new-gen
+          (next-gen-loop (list x y (color-for-pixel ruleset
+                                                    neighbourhood
+                                                    colorset
+                                                    x y
+                                                    :use-cache nil)))))
+    (let ((surface-fp (sdl:fp sdl:*default-display*)))
+      (sdl:with-pixel (pix surface-fp)
+        (loop for element in new-gen
+              do (write-pixel pix
+                              (first element)
+                              (second element)
+                              (third element))
+                 (setf (gethash (list (first  element)
+                                      (second element))
+                                *cached-values*)
+                       (rassoc (third element)
+                               *colors* :test #'sdl:color=)))))))
 
 (defun start (&key (h 300) (w 600)
                 (ruleset 1) (neighbourhood :elementary) (tag nil)
