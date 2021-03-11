@@ -14,7 +14,6 @@
          (ey (or *ey* (1- (elt (sdl:video-dimensions) 1)))))
      (setf *cached-values* (clrhash *cached-values*))
      (loop for y from sy to ey
-           with result = nil
            append (loop for x from 0 below (elt (sdl:video-dimensions) 0)
                         collect ,action))))
 
