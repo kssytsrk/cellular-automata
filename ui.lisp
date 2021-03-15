@@ -8,7 +8,7 @@
 
 (defparameter *sy* nil)
 (defparameter *ey* nil)
-(defparameter *padding* 50)
+(defparameter *padding* 30)
 
 (defun window-height ()
   (- (elt (sdl:video-dimensions) 1) *padding*))
@@ -90,17 +90,17 @@
       (sdl:clear-display (color 0 colors))
       (sdl:initialise-default-font)
       (sdl:draw-string-solid (format nil
-                                       "Neighbourhood: ~a"
-                                       (string-downcase
-                                        (symbol-name neighbourhood)))
+                                     "Neighbourhood: ~a"
+                                     (string-downcase
+                                      (symbol-name neighbourhood)))
                              (sdl:point :x 1 :y (+ h 1))
                              :color (color (1- states) colors))
       (sdl:draw-string-solid (format nil
-                                       "Ruleset: ~a"
-                                       (string-downcase
-                                        (symbol-name (car ruleset))))
-                               (sdl:point :x 1 :y (+ h 9))
-                               :color (color (1- states) colors))
+                                     "Ruleset: ~a"
+                                     (string-downcase
+                                      (symbol-name (car ruleset))))
+                             (sdl:point :x 1 :y (+ h 9))
+                             :color (color (1- states) colors))
       (sdl:draw-string-shaded-* (format nil
                                         "Steps: ~a"
                                         (write-to-string cur-steps))
@@ -127,9 +127,12 @@
                          (cond ((sdl:key= key :SDL-KEY-ESCAPE)
                                 (sdl:push-quit-event))
                                ((sdl:key= key :SDL-KEY-SPACE)
-                                (unless pause
-                                  (funcall evolve-fn
-                                           neighbourhood ruleset colors))
+                                (if auto
+                                    (setf pause (not pause))
+                                    (progn
+                                      (funcall evolve-fn
+                                               neighbourhood ruleset colors)
+                                      (incf steps)))
                                 (sdl:update-display))))
           (:idle ()
                  (when (sdl:mouse-left-p)
@@ -139,18 +142,20 @@
                     :color (color 1 colors))
                    (setf *sy* (min *sy* (sdl:mouse-y)))
                    (setf *ey* (max *ey* (sdl:mouse-y))))
-                 (unless pause
-                   (if auto
-                       (funcall evolve-fn neighbourhood ruleset colors))
-                   (if steps
-                       (decf steps))
-                   (if (eql steps 0)
-                       (setf pause t))
+                 (unless (or pause (not auto))
+                   (funcall evolve-fn neighbourhood ruleset colors)
                    (incf cur-steps)
-                   (sdl:draw-string-shaded-* (format nil
-                                                     "Steps: ~a"
-                                                     (write-to-string cur-steps))
-                                             1 (+ h 19)
-                                             (color (1- states) colors)
-                                             (color 0 colors))
+                   (if (or (and steps (< steps cur-steps))
+                           (and (< 1 cur-steps)
+                                (eq neighbourhood :elementary)))
+                       (setf pause t)
+                       (sdl:draw-string-shaded-* (format nil
+                                                         "Steps: ~a"
+                                                         (if (eql neighbourhood
+                                                                  :elementary)
+                                                             h
+                                                             (write-to-string cur-steps)))
+                                                 1 (+ h 19)
+                                                 (color (1- states) colors)
+                                                 (color 0 colors)))
                    (sdl:update-display))))))))
