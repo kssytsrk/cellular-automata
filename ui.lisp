@@ -8,13 +8,20 @@
 
 (defparameter *sy* nil)
 (defparameter *ey* nil)
+(defparameter *padding* 50)
+
+(defun window-height ()
+  (- (elt (sdl:video-dimensions) 1) *padding*))
+
+(defun window-width ()
+  (elt (sdl:video-dimensions) 0))
 
 (defmacro next-gen-loop (action)
   `(let ((sy (or *sy* (if (eql neighbourhood :elementary) 1 0)))
-         (ey (or *ey* (1- (elt (sdl:video-dimensions) 1)))))
+         (ey (or *ey* (1- (window-height)))))
      (setf *cached-values* (clrhash *cached-values*))
      (loop for y from sy to ey
-           append (loop for x from 0 below (elt (sdl:video-dimensions) 0)
+           append (loop for x from 0 below (window-width)
                         collect ,action))))
 
 (defun evolve (neighbourhood ruleset colorset)
@@ -74,47 +81,76 @@
   (unless (cdr ruleset)
     (error "Invalid ruleset input."))
 
-  (sdl:with-init (sdl:sdl-init-video)
-    (sdl:window w h
-                :title-caption "Cellular automata generation"
-		:no-frame t)
-    (setf (sdl:frame-rate) 60)
-    (sdl:clear-display (color 0 colors))
+  (let ((cur-steps 0))
+    (sdl:with-init (sdl:sdl-init-video)
+      (sdl:window w (+ h *padding*)
+                  :title-caption "Cellular automata generation"
+                  :no-frame t)
+      (setf (sdl:frame-rate) 60)
+      (sdl:clear-display (color 0 colors))
+      (sdl:initialise-default-font)
+      (sdl:draw-string-solid (format nil
+                                       "Neighbourhood: ~a"
+                                       (string-downcase
+                                        (symbol-name neighbourhood)))
+                             (sdl:point :x 1 :y (+ h 1))
+                             :color (color (1- states) colors))
+      (sdl:draw-string-solid (format nil
+                                       "Ruleset: ~a"
+                                       (string-downcase
+                                        (symbol-name (car ruleset))))
+                               (sdl:point :x 1 :y (+ h 9))
+                               :color (color (1- states) colors))
+      (sdl:draw-string-shaded-* (format nil
+                                        "Steps: ~a"
+                                        (write-to-string cur-steps))
+                                1 (+ h 19)
+                                (color (1- states) colors)
+                                (color 0 colors))
 
-    (setf *sy* nil
-          *ey* nil)
 
-    (if starting-pixels
-	(eval starting-pixels)
-        (draw-starting-pixels neighbourhood (car ruleset) colors))
 
-    (let ((evolve-fn (if (eql tag :neighbour-number)
-                         #'evolve-from-prevgen
-                         #'evolve))
-          pause)
-      (sdl:with-events ()
-        (:quit-event () t)
-        (:key-up-event (:key key)
-                       (cond ((sdl:key= key :SDL-KEY-ESCAPE)
-                              (sdl:push-quit-event))
-                             ((sdl:key= key :SDL-KEY-SPACE)
-                              (unless pause
-                                (funcall evolve-fn
-                                         neighbourhood ruleset colors))
-                              (sdl:update-display))))
-        (:idle ()
-               (when (sdl:mouse-left-p)
-                 (sdl:draw-pixel
-                  (sdl:point :x (sdl:mouse-x)
-                             :y (sdl:mouse-y))
-                  :color (color 1 colors))
-                 (setf *sy* (min *sy* (sdl:mouse-y)))
-                 (setf *ey* (max *ey* (sdl:mouse-y))))
-               (unless pause
-                 (if auto
-                     (funcall evolve-fn neighbourhood ruleset colors))
-                 (if steps
-                     (decf steps))
-                 (if (eql steps 0)
-                     (setf pause t)))
-               (sdl:update-display))))))
+      (setf *sy* nil
+            *ey* nil)
+
+      (if starting-pixels
+          (eval starting-pixels)
+          (draw-starting-pixels neighbourhood (car ruleset) colors))
+
+      (let ((evolve-fn (if (eql tag :neighbour-number)
+                           #'evolve-from-prevgen
+                           #'evolve))
+            pause)
+        (sdl:with-events ()
+          (:quit-event () t)
+          (:key-up-event (:key key)
+                         (cond ((sdl:key= key :SDL-KEY-ESCAPE)
+                                (sdl:push-quit-event))
+                               ((sdl:key= key :SDL-KEY-SPACE)
+                                (unless pause
+                                  (funcall evolve-fn
+                                           neighbourhood ruleset colors))
+                                (sdl:update-display))))
+          (:idle ()
+                 (when (sdl:mouse-left-p)
+                   (sdl:draw-pixel
+                    (sdl:point :x (sdl:mouse-x)
+                               :y (sdl:mouse-y))
+                    :color (color 1 colors))
+                   (setf *sy* (min *sy* (sdl:mouse-y)))
+                   (setf *ey* (max *ey* (sdl:mouse-y))))
+                 (unless pause
+                   (if auto
+                       (funcall evolve-fn neighbourhood ruleset colors))
+                   (if steps
+                       (decf steps))
+                   (if (eql steps 0)
+                       (setf pause t))
+                   (incf cur-steps)
+                   (sdl:draw-string-shaded-* (format nil
+                                                     "Steps: ~a"
+                                                     (write-to-string cur-steps))
+                                             1 (+ h 19)
+                                             (color (1- states) colors)
+                                             (color 0 colors))
+                   (sdl:update-display))))))))
