@@ -4,8 +4,6 @@
 
 (in-package #:ca)
 
-(defparameter *colors* nil)
-
 (defparameter *colors-grayscale*
   (list (cons 0  (sdl:color :r 255 :g 255 :b 255 :a 255))
         (cons 1  (sdl:color :r 100 :g 100 :b 100 :a 255))

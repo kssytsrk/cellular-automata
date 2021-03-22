@@ -13,5 +13,5 @@
                (:file "utils")
                (:file "colors")
                (:file "rules")
-               (:file "pixels")
+               (:file "ca")
                (:file "ui")))
