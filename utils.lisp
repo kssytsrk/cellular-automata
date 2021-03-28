@@ -19,3 +19,10 @@
 			    "~" (write-to-string base) ","
 			    (write-to-string padding) ",'0R")
                number)))
+
+(defun print-ca (ca w)
+  (loop for i in ca
+        for n from 1
+        do (format t "~d" i)
+        if (eql (mod n w) 0)
+          do (format t "~&")))
