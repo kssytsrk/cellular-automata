@@ -120,5 +120,7 @@
 (defun mv-product-neumann (neighbourhoods current-state rules)
   (loop for cell-nb in neighbourhoods
         for i from 0 below (length current-state)
-        collect (sum (neumann-order current-state cell-nb)
-                     rules)))
+        with result-vector = (make-array (length current-state))
+        do (setf (elt result-vector i)
+                 (sum (neumann-order current-state cell-nb) rules))
+        finally (return result-vector)))

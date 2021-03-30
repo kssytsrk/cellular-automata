@@ -82,8 +82,8 @@
   (let ((cur-steps 0)
         (state (if (eql neighbourhood
                         :elementary)
-                   (make-list w :initial-element 0)
-                   (make-list (* w h) :initial-element 0))))
+                   (make-array w :initial-element 0)
+                   (make-array (* w h) :initial-element 0))))
         (sdl:with-init ()
       (sdl:window w (+ h *padding*)
                   :title-caption "Cellular automata generation"
