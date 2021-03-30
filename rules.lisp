@@ -4,9 +4,20 @@
 
 (in-package #:ca)
 
+(defmacro transition-rule-fn (rule-name)
+  `(function ,(find-symbol (concatenate 'string
+                                        (symbol-name rule-name)
+                                        "-TRANSITION-RULE")
+                           'ca)))
+
+(defmacro ruleset-fn (rule-name)
+  `(function ,(find-symbol (concatenate 'string
+                                        (symbol-name rule-name)
+                                        "-RULESET")
+                           'ca)))
+
 (defun transition-rule (cells ruleset)
-  (funcall (cdr (assoc-rh (car ruleset) *rules*
-                          :test #'equal))
+  (funcall (eval `(transition-rule-fn ,(car ruleset)))
            cells (cdr ruleset)))
 
 (defun game-of-life-transition-rule (cells ruleset)
@@ -44,11 +55,11 @@
   (gethash (list (first cells) (reduce #'+ (rest cells)))
            ruleset))
 
-(defun -transition-rule (cells ruleset)
+(defun normal-transition-rule (cells ruleset)
   (gethash cells
            ruleset))
 
-(defun ruleset (n neighbourhood possible-states)
+(defun normal-ruleset (n neighbourhood possible-states)
   (declare (ignore possible-states))
   (let ((max-pwr (case neighbourhood
                    (:elementary 8)
@@ -110,13 +121,3 @@
                         state))
                 patterns states)
         ruleset))))
-
-(defparameter *rules*
-  (list
-   (cons :game-of-life         (cons nil #'game-of-life-transition-rule))
-   (cons :wireworld            (cons nil #'wireworld-transition-rule))
-   (cons :totalistic           (cons #'totalistic-ruleset
-                                     #'totalistic-transition-rule))
-   (cons :neighbour-number     (cons #'neighbour-number-ruleset
-                                     #'neighbour-number-transition-rule))
-   (cons :normal               (cons #'ruleset #'-transition-rule))))

@@ -20,9 +20,19 @@
 			    (write-to-string padding) ",'0R")
                number)))
 
+;;; outputs CA state, useful for debugging
 (defun print-ca (ca w)
   (loop for i in ca
         for n from 1
         do (format t "~d" i)
         if (eql (mod n w) 0)
           do (format t "~&")))
+
+;;; only valid within with-pixel/s
+(defmacro write-pixel (pix x y color)
+  `(sdl:write-pixel
+    ,pix ,x ,y
+    (apply #'sdl-cffi::sdl-map-rgba
+	   (concatenate 'list
+			(list (sdl-base:pixel-format surface-fp))
+			(sdl:fp ,color)))))
