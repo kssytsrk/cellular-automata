@@ -56,13 +56,16 @@
                          (sdl:color :r 0 :g 0 :b 0 :a 255)
                          colors))))
   (handler-case
-      (setf ruleset
-            (cons (or (and tag (cons tag ruleset))
-                      (unless (realp ruleset) (cons ruleset nil))
-                      (cons :normal ruleset))
-                  (funcall
-                   (eval `(ruleset-fn ,(or tag (unless (realp ruleset) ruleset) :normal)))
-                           ruleset neighbourhood states)))
+      (progn
+        (setf ruleset
+                    (cons (or (and tag (cons tag ruleset))
+                        (unless (realp ruleset) (cons ruleset nil))
+                        (cons :normal ruleset))
+                    (funcall
+                     (eval `(ruleset-fn ,(or tag (unless (realp ruleset) ruleset) :normal)))
+                     ruleset neighbourhood states)))
+        (unless (cdr ruleset)
+          (error "The ruleset generation function returned NIL.")))
     (t (error) (error (format nil "Invalid ruleset input.~&Details: ~a"
                               error))))
   (handler-case
