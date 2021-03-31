@@ -100,12 +100,23 @@
                  :ruleset ruleset
                  :cur-steps cur-steps
                  :bg-color (color 0 colors))
+      (sdl:update-display)
 
       (sdl:with-events ()
         (:quit-event () t)
         (:key-up-event (:key key)
                        (cond ((sdl:key= key :SDL-KEY-ESCAPE)
-                              (sdl:push-quit-event))))
+                              (sdl:push-quit-event))
+                             ((sdl:key= key :SDL-KEY-SPACE)
+                              (case dimensions
+                                (1 (draw-next-generation state colors cur-steps (1+ cur-steps) w))
+                                (2 (draw-next-generation state colors 0 h w)))
+                              (setf state (next-state (cdr neighbourhood) state ruleset))
+                              (draw-text 1 (+ h 1)(color (1- states) colors)
+                                         :cur-steps cur-steps
+                                         :bg-color (color 0 colors))
+                              (incf cur-steps)
+                              (sdl:update-display))))
         (:idle ()
                (when (sdl:mouse-left-p)
                  (sdl:draw-pixel
