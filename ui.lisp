@@ -14,9 +14,10 @@
                            :color color))
   (if ruleset
       (sdl:draw-string-solid (format nil
-                                   "Ruleset: ~a"
+                                   "Ruleset: ~a ~@[#~a~]"
                                    (string-downcase
-                                    (symbol-name (car ruleset))))
+                                    (symbol-name (car (car ruleset))))
+                                   (cdr (car ruleset)))
                            (sdl:point :x x :y (+ y 9))
                            :color color))
   (if cur-steps
@@ -56,7 +57,9 @@
                          colors))))
   (handler-case
       (setf ruleset
-            (cons (or tag (unless (realp ruleset) ruleset) :normal)
+            (cons (or (and tag (cons tag ruleset))
+                      (unless (realp ruleset) (cons ruleset nil))
+                      (cons :normal ruleset))
                   (funcall
                    (eval `(ruleset-fn ,(or tag (unless (realp ruleset) ruleset) :normal)))
                            ruleset neighbourhood states)))
@@ -65,11 +68,12 @@
   (handler-case
       (setf neighbourhood
             (cons neighbourhood
-                  (funcall
-                   (eval `(neighbourhoods-fn ,neighbourhood)) h w)))
+                  (cell-neighbourhoods (neighbourhood-variable neighbourhood)
+                                       (case dimensions
+                                         (1 (list w))
+                                         (2 (list h w))))))
     (t (error) (error (format nil "Invalid neighbourhood input.~&Details: ~a"
                               error))))
-
 
   (let ((cur-steps 0)
         (state (case dimensions

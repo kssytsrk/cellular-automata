@@ -13,5 +13,6 @@
                (:file "utils")
                (:file "colors")
                (:file "rules")
+               (:file "neighbourhoods")
                (:file "ca")
                (:file "ui")))

@@ -17,7 +17,7 @@
                            'ca)))
 
 (defun transition-rule (cells ruleset)
-  (funcall (eval `(transition-rule-fn ,(car ruleset)))
+  (funcall (eval `(transition-rule-fn ,(car (car ruleset))))
            cells (cdr ruleset)))
 
 (defun game-of-life-transition-rule (cells ruleset)
