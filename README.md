@@ -38,11 +38,13 @@ To look at some [subjectively] cute cellular automata you can evaluate these com
 ```common-lisp
 ;; This is rule 452 of a 2-dimensional neighbour-number cellular automaton.
 ;; The size of the window is 400px x 400px. The colorscheme used is golly.
-(ca:start :w 400 :h 400 :ruleset 452 :neighbourhood :neumann :tag :neighbour-number :colors :golly)
+(ca:start :w 400 :h 400 :ruleset 452 :neighbourhood :neumann
+          :dimensions 2
+          :tag :neighbour-number :colors :golly)
 ```
 ```common-lisp
 ;; Ruleset shown on the demo image above.
-;; Rule 581 of an 1-dimensional totalistic 3-state cellular automata
+;; Rule 581 of an 1-dimensional totalistic 3-state cellular automaton.
 (ca:start :ruleset 581 :tag :totalistic :states 3)
 ```
 
@@ -51,14 +53,15 @@ Use `Escape` or your window manager's button/keybinding to close the window and 
 ## `ca:start` keyword arguments
 `ca:start` takes the following keyword arguments (all of them optional and have a default value):
 - `:h` and `:w` are the height and width of the window where the results of simulation are displayed. Note that the bigger the size of the window, the slower the automaton might be.
-- `neighbourhood` should be either `elementary` (for elementary/1-dimensional 3-neighbour cellular automaton), `:neumann` (for 2-dimensional 5-neighbour cellular automaton), or `:moore` (for 2-dimensional 9-neighbour cellular automaton). Support of other neighbourhoods is in progress.
-- `ruleset` is the ruleset's number or a keyword `:game-of-life` or `:wireworld`. 
-- `tag` is some (optional) additional quality, right now it can be either `:totalistic` or `:neighbour-number`.
-- `steps` is how many times should the evolution run (it works sort of the wrong way for 1-dimensional cellular automatons right now, I know), takes an integer. If left unspecified, runs an infinite number of times.
-- `colors` specifies the colorscheme of cellular automaton's states. Can be `:golly` (will use the colors from Golly, got them from Wikipedia) or `:grayscale` (colors will be shades of white/gray/black). If left unspecified, will use the `:grayscale` colorscheme.
-- `states` is the number of states possible (and colors used). 2 by default.
-- `auto` specifies if the automaton should evolve automatically. `t` by default, if specified `nil` you will have to press `Space` for the automaton to evolve.
-- `starting-pixels` - WIP.
+- `:dimensions` specifies the dimensions of the cellular automaton, should be either 1 or 2 (for now). 1 by default.
+- `:neighbourhood` should be either `:elementary` (for elementary 3-neighbour cellular automaton), `:neumann` (for 5-neighbour cellular automaton, typically used with `:dimensions` set to 2), or `:moore` (for 9-neighbour cellular automaton, typically used with `:dimensions` set to 2). Support of the other neighbourhoods is in progress.
+- `:ruleset` is the ruleset's number or a keyword `:game-of-life` or `:wireworld`. 
+- `:tag` is some (optional) additional quality, right now it can be either `:totalistic` or `:neighbour-number`.
+- `:steps` is how many times should the evolution run, takes an integer. If left unspecified, runs an infinite number of times (for 2-dimensional cellular automata) or the height of the window (for 1-dimensional cellular automata).
+- `:colors` specifies the colorscheme of cellular automaton's states. Can be `:golly` (will use the colors from Golly, got them from Wikipedia) or `:grayscale` (colors will be shades of white/gray/black). If left unspecified, will use the `:grayscale` colorscheme.
+- `:states` is the number of states possible (and colors used). 2 by default.
+- `:auto` specifies if the automaton should evolve automatically. `t` by default, if specified `nil` you will have to press `Space` for the automaton to evolve.
+- `:starting-pixels` - WIP.
 
 ## Adding your own rulesets
 WIP. (should be already possible, the docs are just not yet written)
