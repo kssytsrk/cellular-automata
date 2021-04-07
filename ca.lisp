@@ -14,18 +14,16 @@
 (defun cell-neighbourhoods (neighbourhoods bounds)
   (mapcar (lambda (cell)
             (mapcar (lambda (neighbourhood)
-                      (let ((res (fix-bounds bounds
-                                             (mapcar #'+ cell neighbourhood))))
-                        (apply #'+ (first res) (mapcar #'*
-                                                       (rest bounds)
-                                                       (rest res)))))
+                      (point-to-index
+                       (fix-bounds bounds (mapcar #'+ cell neighbourhood))
+                       bounds))
                     neighbourhoods))
           (get-all-cells bounds)))
 
 (defun get-all-cells (bounds)
   (if bounds
-      (loop for y from 0 below (first bounds)
-            append (mapcar (lambda (list) (append (list y) list))
+      (loop for x from 0 below (first bounds)
+            append (mapcar (lambda (list) (reverse (cons x list)))
                            (get-all-cells (rest bounds))))
       '(nil)))
 

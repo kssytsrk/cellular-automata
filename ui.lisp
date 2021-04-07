@@ -40,8 +40,8 @@
 (defun start (&key (h 300) (w 600)
                    (dimensions 1)
                 (ruleset 1) (neighbourhood :elementary) (tag nil)
-                (steps nil)
-                (colors :grayscale) (states 2) (auto t) (padding 30))
+                (steps nil) (colors :grayscale) (states 2) (auto t)
+                (padding 30) (starting-state '(:center-dot)))
   (when (eql dimensions 1)
     (if steps
         (progn
@@ -79,19 +79,15 @@
                               error))))
 
   (let ((cur-steps 0)
-        (state (case dimensions
-                 (1 (make-array w :initial-element 0))
-                 (2 (make-array (* w h) :initial-element 0)))))
+        (state (funcall (apply (eval `(state-fn ,(car starting-state)))
+                               (cdr starting-state))
+                        (case dimensions (1 1) (t h)) w)))
     (sdl:with-init ()
       (sdl:window w (+ h padding)
                   :title-caption "Cellular automata generation"
                   :no-frame t)
       (setf (sdl:frame-rate) 60)
       (sdl:clear-display (color 0 colors))
-
-      (case dimensions
-        (1 (setf (elt state (truncate (/ w 2))) 1))
-        (2 (setf (elt state (truncate (+ (/ w 2) (* w (/ h 2))))) 1)))
 
       (sdl:initialise-default-font)
       (draw-text 1 (+ h 1)

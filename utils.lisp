@@ -22,7 +22,7 @@
 
 ;;; outputs CA state, useful for debugging
 (defun print-ca (ca w)
-  (loop for i in ca
+  (loop for i across ca
         for n from 1
         do (format t "~d" i)
         if (eql (mod n w) 0)
@@ -36,3 +36,8 @@
 	   (concatenate 'list
 			(list (sdl-base:pixel-format surface-fp))
 			(sdl:fp ,color)))))
+
+(defun point-to-index (point bounds)
+  (apply #'+ (first point) (mapcar #'*
+                                 (rest bounds)
+                                 (rest point))))

@@ -20,6 +20,9 @@
   (funcall (eval `(transition-rule-fn ,(car (car ruleset))))
            cells (cdr ruleset)))
 
+(defun game-of-life-ruleset (n neighbourhood possible-states)
+  (declare (ignore n neighbourhood possible-states)) t)
+
 (defun game-of-life-transition-rule (cells ruleset)
   (declare (ignore ruleset))
   (let ((cell (first cells))
@@ -29,6 +32,9 @@
             (= other-cells 3))
         1
         0)))
+
+(defun wireworld-ruleset (n neighbourhood possible-states)
+  (declare (ignore n neighbourhood possible-states)) t)
 
 (defun wireworld-transition-rule (cells ruleset)
   (declare (ignore ruleset))
