@@ -15,5 +15,4 @@
                (:file "rules")
                (:file "states")
                (:file "neighbourhoods")
-               (:file "ca")
                (:file "ui")))

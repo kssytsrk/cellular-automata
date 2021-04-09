@@ -5,6 +5,7 @@
 (in-package #:ca)
 
 (defun draw-text (x y color &key neighbourhood ruleset cur-steps bg-color)
+  "Draws the info text."
   (if neighbourhood
       (sdl:draw-string-solid (format nil
                                    "Neighbourhood: ~a"
@@ -28,11 +29,13 @@
                               color
                               bg-color)))
 
-(defun draw-state (state colors sy ey ex)
+(defun draw-state (state colors sy sx ey ex)
+  "Draws the state STATE using color set COLORS starting from sy and sx,
+and ending at ey and ex."
   (let ((surface-fp (sdl:fp sdl:*default-display*)))
     (sdl:with-pixel (pix surface-fp)
       (loop for y from sy below ey
-            do (loop for x from 0 below ex
+            do (loop for x from sx below ex
                      do (write-pixel pix x y
                                      (color (elt state (+ x (* (- y sy) ex)))
                                             colors)))))))
@@ -42,6 +45,7 @@
                 (ruleset 1) (neighbourhood :elementary) (tag nil)
                 (steps nil) (colors :grayscale) (states 2) (auto t)
                 (padding 30) (starting-state '(:center-dot)))
+  "Starts the program."
   (when (eql dimensions 1)
     (if steps
         (progn
@@ -105,8 +109,8 @@
                               (sdl:push-quit-event))
                              ((sdl:key= key :SDL-KEY-SPACE)
                               (case dimensions
-                                (1 (draw-state state colors cur-steps (1+ cur-steps) w))
-                                (2 (draw-state state colors 0 h w)))
+                                (1 (draw-state state colors cur-steps 0 (1+ cur-steps) w))
+                                (2 (draw-state state colors 0 0 h w)))
                               (setf state (next-state (cdr neighbourhood) state ruleset))
                               (draw-text 1 (+ h 1)(color (1- states) colors)
                                          :cur-steps cur-steps
@@ -121,8 +125,8 @@
                   :color (color 1 colors)))
                (unless (or (not auto) (and steps (< steps cur-steps)))
                  (case dimensions
-                   (1 (draw-state state colors cur-steps (1+ cur-steps) w))
-                   (2 (draw-state state colors 0 h w)))
+                   (1 (draw-state state colors cur-steps 0 (1+ cur-steps) w))
+                   (2 (draw-state state colors 0 0 h w)))
                  (setf state (next-state (cdr neighbourhood) state ruleset))
                  (draw-text 1 (+ h 1)(color (1- states) colors)
                             :cur-steps cur-steps

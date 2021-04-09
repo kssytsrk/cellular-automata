@@ -5,18 +5,21 @@
 (in-package #:ca)
 
 (defmacro transition-rule-fn (rule-name)
+  "Returns the transition rule's function #'<rule-name>-TRANSITION-RULE."
   `(function ,(find-symbol (concatenate 'string
                                         (symbol-name rule-name)
                                         "-TRANSITION-RULE")
                            'ca)))
 
 (defmacro ruleset-fn (rule-name)
+  "Returns the ruleset creating function #'<rule-name>-RULESET."
   `(function ,(find-symbol (concatenate 'string
                                         (symbol-name rule-name)
                                         "-RULESET")
                            'ca)))
 
 (defun transition-rule (cells ruleset)
+  "Calls the appropriate transition rule."
   (funcall (eval `(transition-rule-fn ,(car (car ruleset))))
            cells (cdr ruleset)))
 
