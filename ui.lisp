@@ -28,7 +28,7 @@
                               color
                               bg-color)))
 
-(defun draw-next-generation (state colors sy ey ex)
+(defun draw-state (state colors sy ey ex)
   (let ((surface-fp (sdl:fp sdl:*default-display*)))
     (sdl:with-pixel (pix surface-fp)
       (loop for y from sy below ey
@@ -105,8 +105,8 @@
                               (sdl:push-quit-event))
                              ((sdl:key= key :SDL-KEY-SPACE)
                               (case dimensions
-                                (1 (draw-next-generation state colors cur-steps (1+ cur-steps) w))
-                                (2 (draw-next-generation state colors 0 h w)))
+                                (1 (draw-state state colors cur-steps (1+ cur-steps) w))
+                                (2 (draw-state state colors 0 h w)))
                               (setf state (next-state (cdr neighbourhood) state ruleset))
                               (draw-text 1 (+ h 1)(color (1- states) colors)
                                          :cur-steps cur-steps
@@ -121,8 +121,8 @@
                   :color (color 1 colors)))
                (unless (or (not auto) (and steps (< steps cur-steps)))
                  (case dimensions
-                   (1 (draw-next-generation state colors cur-steps (1+ cur-steps) w))
-                   (2 (draw-next-generation state colors 0 h w)))
+                   (1 (draw-state state colors cur-steps (1+ cur-steps) w))
+                   (2 (draw-state state colors 0 h w)))
                  (setf state (next-state (cdr neighbourhood) state ruleset))
                  (draw-text 1 (+ h 1)(color (1- states) colors)
                             :cur-steps cur-steps
