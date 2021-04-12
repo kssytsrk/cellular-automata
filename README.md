@@ -61,13 +61,85 @@ Use `Escape` or your window manager's button/keybinding to close the window and 
 - `:colors` specifies the colorscheme of cellular automaton's states. Can be `:golly` (will use the colors from Golly, got them from Wikipedia) or `:grayscale` (colors will be shades of white/gray/black). If left unspecified, will use the `:grayscale` colorscheme.
 - `:states` is the number of states possible (and colors used). 2 by default.
 - `:auto` specifies if the automaton should evolve automatically. `t` by default, if specified `nil` you will have to press `Space` for the automaton to evolve.
-- `:starting-pixels` - WIP.
+- `:starting-state`, coincidentally, specifies what the starting state of the automaton is. Is `'(:center-dot)` by default (this leaves one active/colored dot in the center of the canvas). By default, possible values are `(:empty)` (quite self-explanatory), `(:dot (x1 y1) (x2 y2)...)` (returns a state with active/colored dots at coordinates (x1 y1), (x2 y2) etc, takes any number of arguments), `(:line ((x1 y1) (x2 y2)))` (returns a state with a line from the point at (x1 y1) to the point at (x2 y2), takes any number of arguments that are two-element lists with each element representing a point), `(:random-dots n)` (returns a state with n random active/colored dots).
 
-## Adding your own rulesets
-WIP. (should be already possible, the docs are just not yet written)
+## Extensibility
+To add your own rulesets/neighbourhoods/states into the program, first open the SBCL (or any other Lisp implementation, actually) REPL, quickload :ca and then input:
+
+```common-lisp
+(in-package :ca)
+```
+
+This is a prerequisite for any action below.
+
+### Adding your own rulesets
+Define a ruleset-generating function named `<your-custom-name-here>-ruleset` (without the angle brackets) that takes the number of the ruleset, the neighbourhood, and the number of possible states. Typically, that function returns a hash table mapping a list of cells (a neighbourhood) to some value, but if you don't need such hash table, the function can just return `t`.
+
+An example is this implementation of a "normal" ruleset generating function:
+
+```common-lisp
+(defun normal-ruleset (n neighbourhood possible-states)
+  (declare (ignore possible-states))
+  (let ((max-pwr (case neighbourhood
+                   (:elementary 8)
+                   (:neumann 32)
+                   (:moore 512)
+                   (t 0)))
+        (ruleset (make-hash-table :test #'equal)))
+    (when (and (>= n 0) (< n (expt 2 max-pwr)))
+      (let ((states (decimal-to-base-n-list n max-pwr 2))
+            (patterns (reverse
+                       (loop for i from 0 below max-pwr
+                             collect (decimal-to-base-n-list i
+                                                             (case neighbourhood
+                                                               (:elementary 3)
+                                                               (:neumann 5)
+                                                               (:moore 9))
+							     2)))))
+        (mapcar (lambda (pattern state)
+		  (setf (gethash pattern ruleset)
+                        state))
+                patterns states)
+        ruleset))))
+```
+
+Since the argument `possible-states` is not used here, it is declared as ignored. 
+
+Another example is the game-of-life ruleset-generating function that returns just `t` (since you don't really need a ruleset for game-of-life):
+
+```common-lisp
+(defun game-of-life-ruleset (n neighbourhood possible-states)
+  (declare (ignore n neighbourhood possible-states)) t)
+```
+
+For a custom ruleset, you also need to define a transition-rule function that gets called on the list of cells (a neighbourhood of the cell) and the ruleset. The function has to be named `<your-custom-name-here>-transition-rule`, the custom name being the same as in the ruleset-generating function. 
+
+The simplest example of the transition rule:
+
+```common-lisp
+(defun normal-transition-rule (cells ruleset)
+  (gethash cells
+           ruleset))
+```
+
+After defining both of these, you can now apply the ruleset like this:
+```common-lisp
+(ca:start :w 400 :h 400 :ruleset :custom-name :neighbourhood :neumann)
+```
+or like this:
+```common-lisp
+(ca:start :w 400 :h 400 :ruleset 100 :neighbourhood :neumann :tag :custom-name)
+```
+The particular method that has to be chosen depends on if you need a ruleset number (if it is used in the ruleset-generating function, then you need it).
+
+### Adding your own starting states
+WIP.
+
+### Adding your own neighbourhoods
+WIP.
 
 ## Notes
-Suggestions and bugreports (I'm sure there are some bugs here I don't know of yet) are welcome in the Issues section.
+Suggestions and bugreports are welcome in the Issues section.
 
 ## License
 
