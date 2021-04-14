@@ -133,7 +133,22 @@ or like this:
 The particular method that has to be chosen depends on if you need a ruleset number (if it is used in the ruleset-generating function, then you need it).
 
 ### Adding your own starting states
-WIP.
+After doing a switch to the :ca package, just define a `<custom-name>-state` (without the brackets) closure (function that returns a function) taking any arguments, and returning a function that takes width and height of the state and returns an appropriately-sized array. 
+
+You can use `empty-state` as base. For example, here's the definition of the `dot-state` function:
+
+```common-lisp
+(defun dot-state (&rest points)
+  "Returns a function returning a state with active dots at DOTS
+coordinates."
+  (lambda (h w)
+    (let ((array (funcall (empty-state) h w)))
+      (dolist (point points)
+        (setf (elt array (point-to-index point (list w h))) 1))
+      array)))
+```
+
+After defining the function, you can use it by supplying `:custom-name` to the `:starting-state` keyword argument in `start`, similarly to the previous subsection.
 
 ### Adding your own neighbourhoods
 WIP.
