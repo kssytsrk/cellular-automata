@@ -148,7 +148,7 @@ coordinates."
       array)))
 ```
 
-After defining the function, you can use it by supplying `:custom-name` to the `:starting-state` keyword argument in `start`, similarly to the previous subsection.
+After defining the function, you can use it by supplying `:custom-name` to the `:starting-state` keyword argument in `start`, similar to how it is handled in the previous section.
 
 ### Adding your own neighbourhoods
 WIP.
