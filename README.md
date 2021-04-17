@@ -151,7 +151,21 @@ coordinates."
 After defining the function, you can use it by supplying `:custom-name` to the `:starting-state` keyword argument in `start`, similar to how it is handled in the previous section.
 
 ### Adding your own neighbourhoods
-WIP.
+This case is very similar to the previous ones, except the fact that you need to define a variable instead of a function.
+
+So, after switching to the :ca package, define a `*<custom-name>-nb*` (without brackets, but with the star characters) variable that is a list of lists with length of the dimension the neighbourhood is meant for, consisting of integers that are the coordinates of cells in relation to the cell whose neighbourhood is being evaluated (its coordinates are '(0 0)).
+
+An example for 2-dimensional cellular automata would be the Neumann neighbourhood's implementation:
+```
+(defvar *neumann-nb* '((0 0) (1 0) (0 1) (-1 0) (0 -1)))
+```
+
+An example for 1-dimensional cellular automata is its "usual" neighbourhood's implementation:
+```
+(defvar *elementary-nb* '((-1) (0) (1)))
+```
+
+After defining the variable, you can use it by supplying `:custom-name` to the `:neighbourhood` keyword argument in `start`, similar to how it is handled in previous sections.
 
 ## Notes
 Suggestions and bugreports are welcome in the Issues section.
